@@ -1,0 +1,8 @@
+{
+    "python.pythonPath": "e:/temp/django_demo/env/scripts/python.exe",
+    "python.linting.pylintPath": "pylint",
+    "python.linting.pylintArgs": [
+        "--load-plugins", "pylint_django"
+    ],
+    "python.formatting.autopep8Path": "autopep8"
+}

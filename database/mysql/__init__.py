@@ -213,28 +213,46 @@
 # 删除主键索引: alter table 表名 drop primary key;
 #
 # 外键索引
-# 从表和主表的数据类型必须一直, 关联主表的键必须时主键索引
+# 从表和主表的数据类型必须一致, 关联主表的键必须时主键索引
 # 创建表时
 # create table 表名
 # (id int ,
 # grade int
-# foreign key (自己的键) references student (主表主键)
+# [constraint pk_name] foreign key (自己的键) references 主表 (主键)
 # )
-# 已有表时
-# alter table 表名
-# add constraint 自定义外键名 
-# foreign key (id) references student (id)
 # on update 级联动作
 # on delete 级联动作
-
+# 已有表时
+# alter table 表名
+# [add constraint 自定义外键名]
+# foreign key (id) references 主表 (主键)
+# on update 级联动作
+# on delete 级联动作
 # 如果不指定CONSTRAINT symbol，MYSQL会自动生成一个名字。
 # ON DELETE、ON UPDATE表示事件触发限制，可设参数：
 # RESTRICT（限制外表中的外键改动，默认值）
-# CASCADE（跟随外键改动）
+# CASCADE（级联改动）
 # SET NULL（设空值）
 # SET DEFAULT（设默认值）
 # NO ACTION（无动作，默认的）
+# 删除外键
+# alter table 表名 drop foreign key 外键名;
 
+##############多表连接查询##############
+# 内连接: inner join
+# select * from table1,table2 where 表.字段=表.字段;
+# select * from table1 inner join table2 on 条件
+#
+# 外连接: left join  right join
+# 左连接: 以左表为主显示,没有为NULL
+# select * from table1 left join table2 on 条件;
+# 右连接: 以右表为主显示,没有为NULL
+# select * from table1 right join table2 on 条件;
+# 全连接: full join
+# select * from table1 full join table2 on 条件;
+# 模拟全连接
+# select * from table1 left join table2 on 条件 union [all]
+# select * from table1 right join table2 on 条件;
 
 
 
