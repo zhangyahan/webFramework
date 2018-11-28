@@ -212,8 +212,8 @@
 # 删除自增长属性: alter table 表名 modify id int;
 # 删除主键索引: alter table 表名 drop primary key;
 #
-# 外键索引大打算dasnihaosadsada
-# 
+# 外键(foregin key)
+# 让当前表字段的值在另一个表的范围内选择
 
 ##############多表连接查询##############
 # 内连接: inner join
