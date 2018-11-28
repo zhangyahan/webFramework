@@ -40,11 +40,34 @@ def addStudent(reqeust):
 
 
 def delStudent(reqeust):
-    context = {'status': True,}
+    context = {'status': True, }
     try:
         delUid = reqeust.GET.get('delUid', '')
         models.Student.objects.filter(id=delUid).delete()
     except Exception as e:
         context['status'] = False
-    
+
     return HttpResponse(json.dumps(context))
+
+
+def changeStudent(reqeust):
+    context = {'status': 200}
+    if reqeust.method == "POST":
+        nid = reqeust.POST.get('nid', '')
+        username = reqeust.POST.get('username', '')
+        userage = reqeust.POST.get('userage', '')
+        gender = reqeust.POST.get('gender', '')
+        classes = reqeust.POST.get('classes', '')
+        if nid and userage and userage and gender and classes:
+            stud = models.Student.objects.get(id=nid)
+            if stud:
+                stud.username = username
+                stud.age = userage
+                stud.gender = gender
+                stud.cs_id = classes
+                stud.save()
+            else:
+                pass
+        else:
+            pass
+        return HttpResponse(json.dumps(context, ensure_ascii=False))
