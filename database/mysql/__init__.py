@@ -212,31 +212,8 @@
 # 删除自增长属性: alter table 表名 modify id int;
 # 删除主键索引: alter table 表名 drop primary key;
 #
-# 外键索引
-# 从表和主表的数据类型必须一致, 关联主表的键必须时主键索引
-# 创建表时
-# create table 表名
-# (id int ,
-# grade int
-# [constraint pk_name] foreign key (自己的键) references 主表 (主键)
-# )
-# on update 级联动作
-# on delete 级联动作
-# 已有表时
-# alter table 表名
-# [add constraint 自定义外键名]
-# foreign key (id) references 主表 (主键)
-# on update 级联动作
-# on delete 级联动作
-# 如果不指定CONSTRAINT symbol，MYSQL会自动生成一个名字。
-# ON DELETE、ON UPDATE表示事件触发限制，可设参数：
-# RESTRICT（限制外表中的外键改动，默认值）
-# CASCADE（级联改动）
-# SET NULL（设空值）
-# SET DEFAULT（设默认值）
-# NO ACTION（无动作，默认的）
-# 删除外键
-# alter table 表名 drop foreign key 外键名;
+# 外键索引大打算dasnihaosadsada
+# 
 
 ##############多表连接查询##############
 # 内连接: inner join
