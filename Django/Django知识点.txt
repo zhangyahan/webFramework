@@ -1,0 +1,14 @@
+内容拾忆
+    -新URL
+        -提交时,保留之前的内容
+    -对话框
+        - var data = $('#from').serialize();
+        - 获取整个表单的信息
+          $.ajax({
+              data: $('#from').serialize();
+          })
+
+分页组件
+    - 内置分页
+    - 扩展Django的内置分页
+    - 自定义分页
