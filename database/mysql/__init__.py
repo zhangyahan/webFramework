@@ -179,7 +179,7 @@
 # 加快数据检索速度
 # 占用物理空间,当对表中数据进行更新时,索引需要动态维护,减低数据维护速度
 # 
-# 普通索引(index MUL)
+#################### 普通索引(index MUL)
 # 可以设置多个字段,字段值无约束
 # 创建表时 create table demo 
 #        (name varchar(32),
@@ -189,7 +189,7 @@
 # 查看索引 desc 表名; show index from 表名\G;
 # 删除索引 drop index 索引名 on 表名;
 #
-# 唯一索引(unique UNI)
+#################### 唯一索引(unique UNI)
 # 可以设置多个字段,字段值不允许重复,但可以为NULL
 # 创建表时 create table demo 
 #        (name varchar(32),
@@ -199,7 +199,7 @@
 # 查看索引 desc 表名; show unique from 表名\G;
 # 删除索引 drop unique 索引名 on 表名;
 #
-# 主键索引(primary key PRI)
+################### 主键索引(primary key PRI)
 # 自增长属性(auto_increment, 配合主键一起使用)
 # 只能有一个主键字段, 不允许重复,且不能为NULL
 # 通常设置记录编号字段id, 能唯一锁定一个记录
@@ -212,8 +212,54 @@
 # 删除自增长属性: alter table 表名 modify id int;
 # 删除主键索引: alter table 表名 drop primary key;
 #
-# 外键(foregin key)
+############################外键(foregin key)
 # 让当前表字段的值在另一个表的范围内选择
+# 主表从表字段数据类型要一致,主表被参考字段必须为主键
+# 语法:
+# foreign key (参考字段名)
+# references 主表(被参考字段名)
+# on delete 级联动作
+# on uodate 级联动作
+# 创建表时
+# create table 表名(
+# id int,
+# name varchar(32),
+# foreign key(参考字段名) references 主表(主键)
+# on delete 级联动作
+# on update 级联动作);
+# 以有表添加外键
+# alter table 表名 add
+# foreign key (参考字段) references 主表(主键)
+# on delete 级联动作
+# on update 级联动作
+# 删除外键
+# alter table 表名 drop foreign key 外键名;
+# 级联动作
+# cascade    数据级联删除,更新(参考字段)
+# restrict   默认,从表有相关记录,不允许主表操作
+# set null   主表删除,更新,从表关联记录字段值为NULL
+#
+###########################表复制########################
+# create table 表名 select ... from 表名 where 条件 [limit];
+# 复制表结构
+# create table 表名 select ... from 表名 where false;
+# 复制表结构不会把原表的 键属性复制过来
+
+################嵌套查询##################
+# 将内层的查询结果作为外层的查询条件
+# select ... from 表名 where 条件 (select ...);
+# 把攻击值小于平均攻击值的英雄名字和攻击值显示出来
+# 先找到平均值, 在找小于平均值的名字和攻击
+# select name,gongji from MOSHOU.sanguo
+# where
+# gongji<(select avg(gongji) from MOSHOU.sanguo);
+# 找出每个国家攻击力最高的英雄的名字和攻击值
+# 先找到每个国家攻击最高,在根据国家和攻击找到相应的名字和攻击
+# select name,gongji from sanguo
+# where 
+# (country,gongji) in
+# (select country,max(gongji) from sanguo group by country);
+
 
 ##############多表连接查询##############
 # 内连接: inner join
@@ -232,9 +278,54 @@
 # select * from table1 right join table2 on 条件;
 
 
+##################数据导入#######################
+# 把文件系统的内容导入到数据库中
+# 语法
+# load data infile '文件绝对路径'
+# in table '表名'
+# fields terminated by '分割符'
+# lines terminated by '\n';
+# 导入过程
+# 先创建相应的表
+# 把文件拷贝到数据库的默认搜索路径
+#   show variables like "secure_file_priv";
+# 执行数据导入语句
 
+################数据导出#####################
+# 将数据库中的记录导出到文件系统中
+# 语法
+# select ... from 表名
+# into outfile '/var/lib/mysql-files/文件名'
+# fields terminated by '分割符'
+# lines terminated by '\n';
 
+##################数据备份##################
+# mysqldump -u用户名 -p 源库名 > 绝对路径.sql
+# 源库名的表示方式
+# --all -databases  备份所有库
+# 库名               备份单个库
+# -B 库1 库2         备份多个库
+# 库名 表1 表2        备份指定库的多张表
 
+##################数据恢复###############
+# 命令格式(终端命令)
+# mysql -u用户名 -p 目标库名 < 文件路径
+# 从所有备份库中恢复某一个库(--one-database)
+# mysql -u用户名 -p --one-database 目标库名 < 文件路径
+# 恢复库时如果恢复到原库会将表中数据覆盖,新增表不会删除
+# 数据恢复时如果恢复的库不存在,则必须创建新库
+
+#############mysql的用户账号管理###########
+# 开启mysql远程链接
+# /ect/mysql/mysql.conf.d/mysqld.conf 
+# #bind-address = 127.0.0.1
+# /ect/init.d/mysql restart
+#
+# 添加授权用户
+# grant 权限列表 on 库.表 to '用户名'@'%'
+# identified by '密码' with geant option;
+# 权限列表: all privileges select insert
+# 库.表: *.* 所有库.所有表
 
 
 
