@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "e:/temp/django_demo/env/scripts/python.exe",
+    "python.pythonPath": "/usr/bin/python3",
     "python.linting.pylintPath": "pylint",
     "python.linting.pylintArgs": [
         "--load-plugins", "pylint_django"
