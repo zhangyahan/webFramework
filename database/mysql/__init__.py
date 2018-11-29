@@ -327,6 +327,122 @@
 # 权限列表: all privileges select insert
 # 库.表: *.* 所有库.所有表
 
+##############存储引擎##################
+# 查看所有的存储引擎: show engines;
+# 创建表时指定存储引擎: ...... engine=引擎名称
+# 已有表增加存储引擎:   alter table 表名 engine=innodb
 
+###################锁################
+# 解决客户端并发访问的冲突问题
+# 读锁(共享锁)
+# select ：加读锁之后别人不能更改表记录,但可以进行查询
+# 写锁(互斥锁、排他锁)
+# insert、delete、update
+# 加写锁之后别人不能查、不能改
+# 
+# 锁粒度
+# 表级锁 ：myisam
+# 行级锁 ：innodb
+# 
+# 常用存储引擎特点
+# InnoDB特点
+# 共享表空间
+# 表名.frm ：表结构和索引文件
+# 表名.ibd ：表记录
+# 支持行级锁
+# 支持外键、事务操作
+# 
+# MyISAM特点
+# 独享表空间
+# 表名.frm ：表结构
+# 表名.myd ：表记录 mydata
+# 表名.myi ：索引文件 myindex
+# 支持表级锁
+# 
+# 如何决定使用哪个存储引擎
+# 执行查操作多的表用 MyISAM(使用InnoDB浪费资源)
+# 执行写操作多的表用 InnoDB
 
+#############MySQL调优###########
+# 选择合适的存储引擎
+# 读操作多 ：MyISAM
+# 写操作多 ：InnoDB
+# 
+# 创建索引
+# 在 select、where、order by常涉及到的字段建立索引
+# 
+################ SQL语句的优化
+# where子句中不使用 != ,否则放弃索引全表扫描
+# 尽量避免 NULL 值判断,否则放弃索引全表扫描
+# 优化前 ：
+# select number from t1 where number is null;
+# 优化后 ：
+# 在number列上设置默认值0,确保number列无NULL值
+# select number from t1 where number=0;
+# 
+# 尽量避免 or 连接条件,否则放弃索引全表扫描
+# 优化前 ：
+# select id from t1 where id=10 or id=20 or id=30;
+# 优化后：
+# select id from t1 where id=10
+# union all
+# select id from t1 where id=20
+# union all
+# select id from t1 where id=30;
+# 
+# 模糊查询尽量避免使用前置 % ,否则全表扫描
+# select name from t1 where name like "%c%";
+# 
+# 尽量避免使用 in 和 not in,否则全表扫描
+# select id from t1 where id in(1,2,3,4);
+# select id from t1 where id between 1 and 4;
+# 尽量避免使用 select * ...;用具体字段代替 * ,不要返回用不到的任何字段
+
+##############事务和事务回滚################
+# 一件事从开始发生到结束的整个过程
+# 确保数据一致性
+# 事务和事务回滚应用
+# MySQL中sql命令会自动commit到数据库
+# show variables like "autocommit"
+# 
+# 事务应用
+# 开启事务
+# mysql> begin;
+# mysql> ...一条或多条SQL语句
+# # 此时autocommit被禁用
+# 终止事务
+# mysql> commit; | rollback;
+
+#################与Python的交互###################
+# 建立数据库连接(db = pymysql.connect(...))
+# 建立游标对象(c = db.cursor())
+# 游标方法: c.execute('sql语句')
+# 提交到数据库: db.commit()
+# 关闭游标对象: c.close()
+# 关闭数据库对象: db.close()
+# connect方法的参数
+# host: 主机地址,本地localhost
+# port: 端口号
+# user: 用户名
+# password: 密码
+# database: 库
+# charset: 编码方式, 推荐使用utf-8
+# 数据库连接对象(db)的方法
+# db.close()            关闭连接
+# db.commit()           提交到数据库执行
+# db.rollback()         回滚
+# cursor = db.cursor()  返回游标对象,用于执行具体sql命令
+# 游标方法
+# cursor.execute(sql命令, [列表]) 执行sql命令
+# cursor.close()                 关闭游标对象
+# cursor.fetchone()              获取查询结果集的第一条数据
+# cursor.fetchmany(n)            获取n条
+# cursor.fetchall()              获取全部
+#
+##################ORM对象关系映射
+# 把对象模型映射到mysql数据库: SQLAlchemy
+# class User(Base):
+# __tablename__ = '表名'
+# id = Column(Integer, primary_key=True)
+# name = Column(String(20))
 
