@@ -7,6 +7,14 @@
     <title>Document</title>
 </head>
 <body>
-    
+    {% load myfilter %}
+    {{ name|sb }}
+    {{ name|addstr:'哈哈' }}
+
+    {% load mysimpletag %}
+    {% my_sum '张亚瀚' '啦啦' '哈哈' %}
+
+    {% load inclusion %}
+    {% test %}
 </body>
 </html>

@@ -8,7 +8,62 @@ Python中Web框架的分类
     框架自带b和c,使用第三方的a   -----------> Django
     框架自带b,使用第三方的a和c   -----------> Flask
 
+一个完整的请求流程
+a.启动服务器,等待客户端(用户的浏览器)来连接
+b.在浏览器地址输入URL,与服务器建立连接,浏览器发送请求
+c.服务器收到请求消息,解析请求消息,根据路径和函数的对应关系,找到将要执行的函数
+d.执行函数,打开HTML文件,进行字符串替换,得到一个最终要返回的HTML内容
+e.按照HTTP协议的消息格式要求,把HTML内容回复给用户浏览器(发送响应)
+f.浏览器收到响应的消息之后,按照HTML的规则渲染页面
+g.关闭连接
 
-########################Django基础#######################
+
 新建一个Django项目
 django-admin startproject 项目名
+
+
+form表单提交
+input标签必须有name属性
+在form表单中添加{% csrf_token %}进行跨站点
+后端接收数据request.POST.get('name属性值')
+
+
+自定义filter
+    from django import template
+    register = template.Library()
+
+    # 注册
+    @register.filter(name='sb')
+    def add_sb(arg):
+        return "{} sb.".format(arg)
+    
+    @register.filter(name='addstr')
+    """
+    第一个参数永远是管道符前面的那个变量
+    :param arg:  管道前面那个变量
+    :param arg2: 冒号后面引号里面的编程
+    """
+    def add_sb(arg, arg2):
+        return "{} {}.".format(arg, arg2)
+
+在模板中{% load 自定义filter文件名 %}进行引入,才能使用
+
+
+
+自定义simpletag
+    #################### python代码
+    from django import template
+
+    register = template.Library()
+
+
+    @register.simple_tag(name='my_sum')
+    def my_sum(arg1, arg2, arg3):
+        return'{} {} {}'.format(arg1, arg2, arg3)
+
+    #########################模板代码
+    {% load 自定义simpletag文件名 %}
+    {% name名 '参数1' '参数2' ... %}
+
+
+自定义inclusion_tag
