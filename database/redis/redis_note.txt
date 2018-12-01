@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# @Date    : 2018-12-01 21:45:13
+# @Author  : Zhang Yahan (zyahan1997@163.com)
+# @Link    : http://www.github.com/zhangyahan/
+# @Version : $Id$
+
+
+set(name, value, ex=None, px=None, nx=False, xx=Flase)
+	ex: 过期时间(秒)
+	px: 过期时间(毫秒)
+	nx: 如果设置为True,则只有name不存在时,当前set操作才执行
+	xx: 如果设置为True,则只有name不存在时,当前set操作才执行
+
+setnx(name, value)
+	设置值,只有name不存在时,执行设置操作
+
+setex(name, value, time)
+	time: 过期时间,秒或timedelta对象
+
+psetex(name, value, time)
+	time: 过期时间,毫秒或timedelta对象
+
+mset(*args, **kwargs)
+	批量设置
