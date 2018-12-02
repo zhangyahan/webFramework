@@ -12,4 +12,59 @@ session
 特殊装饰器
 
 
-###########01-Flask框架
+##################01-Flask框架################
+
+######app.py导入配置文件######
+	app = Flask(__name__)
+	app.config.from_object('settings.Dev')
+
+######settings.py设置配置文件######
+	class Base(object):
+		XX = 123
+
+	class Pro(Base):
+		DEBUG = False
+
+	class Dev(Base):
+		DEBUG = True
+
+######路由系统######
+-endpoint,设置name值
+-url_for('name', param=param),根据name值反向解析URL
+-动态路由
+	@app.route('/index/<int:nid>')
+	def index(nid):
+		pass
+
+######视图######
+
+
+######请求######
+请求信息都包含在request中
+request.method
+request.args
+request.form
+request.values
+request.cookies
+request.headers
+request.path
+request.full_path
+request.script_root
+request.url
+request.base_url
+request.url_root
+request.host_url
+request.host
+request.files
+obj = request.files['the_file_name']
+obj.save(路径+文件名)
+
+
+#######响应######
+return "index"
+return render_template()
+return redirect()
+dic = {'k1': "v1"}
+return jsonify(dic)
+
+ 

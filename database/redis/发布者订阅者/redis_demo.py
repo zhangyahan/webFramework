@@ -25,6 +25,26 @@
 # print(r.get('foo'))
 
 
+# 自定义列表操作
+# import redis
+# r = redis.Redis(host='127.0.0.1', port=6379)
+
+# def list_iter(name):
+# 	"""
+# 	:param name: key的值
+# 	:yiled: 值和索引
+# 	"""
+
+# 	list_count = r.llen(name)
+# 	for index in range(list_count):
+# 		yield r.lindex(name, index)
+
+
+# for i in list_iter('foo'):
+# 	print(i) 
+
+
+
 # 事务
 # import redis
 
@@ -86,17 +106,12 @@ class RedisHelper(object):
 		return pub
 
 
-# 订阅者
-obj = RedisHelper()
-redis_sub = obj.subscribe()
-
-while True:
-	msg = redis_sub.parse_response()
-	print(msg)
-
-
 # 发布者
 obj = RedisHelper()
-obj.public('hello')
+while 1:
+	msg = input('>>>')
+	if not msg:
+		break
+	obj.public(msg)
 
 

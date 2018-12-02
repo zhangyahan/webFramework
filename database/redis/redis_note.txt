@@ -23,3 +23,9 @@ psetex(name, value, time)
 
 mset(*args, **kwargs)
 	批量设置
+
+
+
+
+连接池
+自定义列表操作
