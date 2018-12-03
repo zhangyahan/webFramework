@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<title>index</title>
+</head>
+<body>
+	{% block context %}
+	<h1>学生列表</h1>
+	<table>
+		<thead>
+			<tr>
+				<th>ID</th>
+				<th>姓名</th>
+				<th>年龄</th>
+				<th>性别</th>
+				<th>选项</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for k, v in stud.items() %}
+				<tr>
+					<td>{{ k }}</td>
+					<td>{{ v.name }}</td>
+					<td>{{ v['age'] }}</td>
+					<td>{{ v.get('gende', '未知') }}</td>
+					<td>
+						<a href="/catinfo/{{ k }}">查看详细</a>
+						<a href="/delinfo/{{ k }}">删除</a>
+					</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	{% endblock %}
+</body>
+</html>

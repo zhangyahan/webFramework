@@ -14,57 +14,196 @@ session
 
 ##################01-Flask框架################
 
-######app.py导入配置文件######
-	app = Flask(__name__)
-	app.config.from_object('settings.Dev')
 
-######settings.py设置配置文件######
-	class Base(object):
-		XX = 123
+######配置文件######
+	-app.py
+		app = Flask(__name__)
+		app.config.from_object('settings.Dev')
 
-	class Pro(Base):
-		DEBUG = False
+	-config.py
+		class Base(object):
+			XX = 123
 
-	class Dev(Base):
-		DEBUG = True
+		class Pro(Base):
+			DEBUG = False
+
+		class Dev(Base):
+			DEBUG = True
+
 
 ######路由系统######
--endpoint,设置name值
--url_for('name', param=param),根据name值反向解析URL
--动态路由
-	@app.route('/index/<int:nid>')
-	def index(nid):
-		pass
+	-endpoint,设置name值
+	-url_for('name', param=param),根据name值反向解析URL
+	-动态路由
+		@app.route('/index/<int:nid>')
+		def index(nid):
+			pass
+
 
 ######视图######
 
 
 ######请求######
-请求信息都包含在request中
-request.method
-request.args
-request.form
-request.values
-request.cookies
-request.headers
-request.path
-request.full_path
-request.script_root
-request.url
-request.base_url
-request.url_root
-request.host_url
-request.host
-request.files
-obj = request.files['the_file_name']
-obj.save(路径+文件名)
+	请求信息都包含在request中
+	request.method
+	request.args
+	request.form
+	request.values
+	request.cookies
+	request.headers
+	request.path
+	request.full_path
+	request.script_root
+	request.url
+	request.base_url
+	request.url_root
+	request.host_url
+	request.host
+	request.files
+	obj = request.files['the_file_name']
+	obj.save(路径+文件名)
 
 
 #######响应######
-return "index"
-return render_template()
-return redirect()
-dic = {'k1': "v1"}
-return jsonify(dic)
+	return "index"
+	return render_template()
+	return redirect()
+	dic = {'k1': "v1"}
+	return jsonify(dic)
 
- 
+	响应体 = make_response('响应')
+	响应体.header['xxx'] = 'xxx'
+	响应体.set_cookie('key', value)
+
+
+	##########登录##############
+	版本一:
+		@app.route('/index')
+		def index():
+			if not session.get('username', ''):
+				return redirect(url_for('login'))
+			return reder_template('index.html')
+
+		-应用场景: 一般不用
+
+
+	版本二(functools.wraps(func)):
+		def auto(func):
+			@functools.wraps(func)
+			def inner(*args, **kwargs):
+				if not session.get('username', ''):
+					return redirect(url_for('login'))
+				ret = func(*args, **kwargs)
+				return ret
+			return inner
+
+		@app.route('/')
+		@app.route('/index', endpoint='index')
+		@auto
+		def index():
+			stud = STUDENT_DICT
+			return render_template('index.html', stud=stud)
+
+		-应用场景:比较少的函数中需要额外添加功能
+
+
+	版本三(before_request):
+		-当有请求过来时, 最先执行@app.before_request装饰器函数装饰的内容
+		@app.before_request
+		def xxxxxx():
+			if request.path == '/login':
+				return
+			if not session.get('username', ''):
+				return '滚'
+
+
+#############模板渲染###############
+	基本数据类型: 可以执行python语法, 如:dict.get(), list['xxx']
+	传入函数
+		-django,自动执行
+		-flask, 不自动执行
+
+	定义全局方法
+		@app.template_global()
+		def func(num):
+			return num + 1
+		-调用: {{ func(7) }}
+
+		@app.template_filter()
+		def func_params(a, b, c):
+			return a + b + c
+		-调用: {{ 3|func_params(4, 5) }}(有返回值可以进行判断)
+
+	继承:
+		父模板(定义被子模板中继承的内容)
+			{% block 块名 %}{% endblock %}
+		子模板(继承父模板并修改内容)
+			{% extends '父模板名称' %}
+			{% block 块名 %}修改内容{% endblock %}
+
+	引用:
+		{% include '模板名' %}	
+
+	宏定义:
+		-定义:
+		{% macro func(name, type='text', value='') %}
+			<input type="{{ type }}", name="{{ name }}", value="{{ value }}">
+		{% endmacro %}
+		-调用
+		{{ func('n1') }}
+		{{ func('n2') }}
+
+	安全
+		-前端: {{ u|safe }}
+		-后端: Markup('xxx')
+
+
+#############session###########
+	-当请求刚到来时,flask读取cookie中session对应的值
+	-将值进行反序列化成字典,放入内存,以便视图函数使用
+		session['xxx'] = 123
+		session['xxx']
+	-当请求结束时,flask会读取内存中字典的值,在进行序列化+加密
+	-写入到用户的cookie中
+
+
+############闪现###########
+	-在session中存储一个数据,读取时通过pop将数据移除
+	from flask import flash,get_flashed_messages
+
+	def 11111():
+		flash('xxx', 'error')
+		flash('xxx', 'info')
+		return 'xxx'
+
+	def 22222():
+		get_flashed_messages(category_filter=['error'])
+		return 'xxx'
+
+
+###########中间件##########
+	-call方法
+		-当用户发起请求时,才执行
+	-任务: 在call方法执行前,后各做一个操作
+		class MiddleWare(object):
+		"""docstring for MiddleWare"""
+		def __init__(self, old):
+			self.old = old
+
+		def __call__(self, *args, **kwargs):
+			print('前')
+			ret = self.old(*args, **kwargs)
+			print('后')
+			return ret
+
+		if __name__ == '__main__':
+			app.wsgi_app = MiddleWare(app.wsgi_app)
+			app.run(debug=True)
+
+
+###########特殊装饰器########
+	before_request: 当请求进来时最先执行该装饰器装饰的函数
+	after_request: 
+	template_global(): 模板方法(one param)
+	tempalte_filter(): 模板方法(params)
+

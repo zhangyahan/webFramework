@@ -1,0 +1,20 @@
+{% extends 'index.html' %}
+
+{% block context %}
+	{{ users[0] }}
+	{{ users.0 }}
+	{{ users }}
+	{{ txt }}
+	{# {{ txt|safe }} #}
+	<span style="color:red">global:</span>{{ func(7) }}
+	<span style="color:red">filter:</span>{{ 3|func_params(4, 5) }}
+
+	{% include 'login.html' %}
+
+	{% macro func(name, type='text', value='') %}
+		<input type="{{ type }}", name="{{ name }}", value="{{ value }}">
+	{% endmacro %}
+
+	{{ func('n1') }}
+	{{ func('n2') }}
+{% endblock %}
