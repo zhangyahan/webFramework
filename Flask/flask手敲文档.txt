@@ -1,18 +1,15 @@
-###################Flask概括##################
-配置文件
-路由系统
-视图
-请求
-响应
-模板渲染
-session
-闪现
-中间件
-蓝图(blueprint)
-特殊装饰器
-
-
-##################01-Flask框架################
+##################Flask一日概括#################
+	-配置文件
+	-路由系统
+	-视图
+	-请求
+	-响应
+	-模板渲染
+	-session
+	-闪现
+	-中间件
+	-蓝图(blueprint)
+	-特殊装饰器
 
 
 ######配置文件######
@@ -203,7 +200,163 @@ session
 
 ###########特殊装饰器########
 	before_request: 当请求进来时最先执行该装饰器装饰的函数
-	after_request: 
+	after_request: 必须要有个参数,必须要有个返回值, 在请求返回时执行
+	before_first_resquest: 启动起来第一次执行
 	template_global(): 模板方法(one param)
 	tempalte_filter(): 模板方法(params)
+	error_handler(404):
 
+
+#########中间总结########
+	-配置文件: 使用字符串导入模块, 自导入大写的变量
+	-路由
+	-视图: FBV
+	-请求
+	-响应
+		-obj = make_response('asdsadsa')
+		-obj.headers['x'] = adsdsa
+		-return obj
+	-模板
+
+
+Django和Flask的区别
+	-Django是一个大而全的框架,有很多自带的组件
+	-Flask是一个短小精悍的框架,有更多的可扩展性
+	-都是通过wsgi来做的
+	-Django的request时通过传参的, Flask的请求是导入的
+
+
+什么是wsgi
+	-web服务接口, wsgi是一个协议
+	-实现该协议的模块
+		-wsgiref
+		-werkzeug
+	-实现协议的模块本质上就是一个socket服务端
+	-用于接受用户请求, 并处理
+	-一般的web框架基于wsgi实现, 这样实现关注点分离
+
+	-wsgiref实例
+		from wsgiref.simple_server import make_server
+
+		def run_server(environ, start_response):
+			start_response('200 ok', [消息头])
+			return [bytes('字符串', endcoding='utf-8')]
+
+		if __name__ == '__main__':
+			httpd = make_server('127.0.0.1', 9999, run_server)
+			httpd.server_forever()
+
+	-werking实例
+		from werkzeug.serving import run_simple
+		from werking.wrappers import Response
+
+		def run_server(environ, start_response):
+			response = Response('响应体')
+			return response(environ, start_response)
+
+		if __name__ == '__main__':
+			run_simple('127.0.0.1', 9999, run_server)
+
+
+Flask提供的功能
+	-配置文件
+		-所有的配置文件都在app.config
+		-app.comfig['xxx'] = xxx
+		-新建一个类,在类中写一些静态字段,引入app.config.from_object('类的路径')
+		-应用: importlib\getattr
+			-django中间件
+			-rest framework全局配置
+	-session
+		-加密后放置到用户浏览器的cookie中
+	-闪现
+		-局域session实现
+	-路由
+		-装饰器
+		-自定义装饰器放下面
+	-视图
+		-FBV
+	-请求和响应
+		-请求: request
+		-响应:
+			""
+			jsonify
+			render_template
+			redirect
+
+	-模板
+	-特殊装饰器
+		-before_first_resquest
+		-before_request
+		-after-request
+		-template_flobal()
+		-template_filter()
+		-errorhandler(404)
+	-中间件
+
+
+##################Flask二日概括#################
+	-路由叫视图
+	-session实现原理
+	-蓝图
+	-threading.local
+	-上下文管理
+
+
+#########路由和视图##########
+	a.路由设置的两种方式
+		@app.route('/index')
+		def index():
+			return 'index'
+
+		def index():
+			return 'index'
+		app.add_url_rule('/index', None, index)
+
+		注意事项: 尽量不要让endpoint重名
+
+	b.参数
+		rule                 URL规则
+		view_func			 视图函数名称
+		defaults=None		 默认值,当URL中无参数时,{}
+		endpoint=None		 名称,用于反向生成URL
+		methods=None		 允许的请求方式
+		strict_slashes=None  是否严格在url后加/
+		redirect_to='/index' 重定向
+		subdomain=None		 子域名访问
+
+	c.CBV
+		from flask import Flask, views
+		import functools
+
+		app = Flask(__name__)
+
+		def wrapper(func):
+			@functools.wraps(func)
+			def inner(*args, **kwargs):
+				return func(*args, **kwargs)
+
+			return inner
+
+		class UserView(views.MethodView):
+			methods = ['GET']  # 指定允许的方法
+			decorators = [wrapper,]  # 指定装饰器
+			def get(self, *args, **kwargs):
+				return "GET"
+
+			def post(self, *args, **kwargs):
+				return "POST"
+
+
+		app.add_url_rule(rule='/user',
+						 endpoint=None, 
+						 view_func=UserView.as_view('uuuu'))
+
+
+		if __name__ == '__main__':
+			app.run(debug=True)
+
+	d.自定义正则
+		见: 07_自定义正则
+
+
+#########session实现原理(源码)########

@@ -6,11 +6,31 @@
 # @Version : $Id$
 
 
-import importlib
+# import importlib
 
-path = 'sys.path'
+# path = 'sys.path'
 
-p, c = path.split('.')  # 进行字符串分割
-m = importlib.import_module(p)  # 获模块名
-cls = getattr(m, c)  # 获取对象
-print(cls)
+# p, c = path.split('.')  # 进行字符串分割
+# m = importlib.import_module(p)  # 获模块名
+# cls = getattr(m, c)  # 获取对象
+# print(cls)
+
+
+# Flask入口
+# from werkzeug.wrappers import Response
+# from werkzeug.serving import run_simple
+
+# class Flask(object):
+# 	def __call__(self, environ, start_response):
+# 		response = Response('hello')
+# 		return response(environ, start_response)
+
+# 	def run(self):
+# 		run_simple('127.0.0.1', 9999, self)
+
+
+# app = Flask()
+
+
+# if __name__ == '__main__':
+# 	app.run()

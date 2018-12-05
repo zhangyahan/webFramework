@@ -1,0 +1,152 @@
+关系型数据库
+    -采用关系模型来组织结构的数据库(二维表)
+
+非关系型数据库
+    -高并发,读写能力强,扩展性强,使用灵活
+    -不支持事务操作
+
+系统数据库
+    -admin:  存储用户和权限
+    -local:  存储本地化数据
+    -config: 存储分片信息
+
+
+mongodb数据库
+    -文档型数据库
+
+MongoDB命令
+    -设置数据库的存储位置: mongod --dpath 目录
+    -设置数据库端口(27017): mongod --port 端口
+    -监测命令: mongostat
+
+MongoDB数据库的组成结构
+    -键值对 >>> 文档 >>> 集合 >>> 数据库
+
+mysql与mongodb概念比较
+    -mysql      -mongo       含义
+    -database   -database    数据库
+    -table      -collection  表/集合
+    -column     -field       字段/域
+    -row        -document    记录/文档
+    -index      -index       索引
+
+数据的备份和恢复
+    -备份: mongodump -h dbhost -d dbname -o file
+    -恢复: mongorestore -h dbhost:port -d dbname file
+
+mongo语法
+    -数据库
+        -mongo中的db时系统的全局变量,代表当前正在使用的数据库
+        -当不使用use选择任何数据库时,db代表test
+
+        -use databaseName(库名)   创建数据库
+        -show dbs                 查看数据库
+        -db.dropDatabase()        删除db代表的数据库
+
+    -集合(表)
+        -db.createCollection(collection_name)       创建集合
+        -show collections/show tables               查看集合
+        -db.collection.drop()                       删除集合
+        -db.collection.renameCollection("new_name") 集合重命名
+    
+    -文档(字段)
+        -以键值对的形式组成的类似与字典的数据结构
+        -键为文档的域,文档中的键值对是有序的,严格区分大小写
+        -值为文档存储的数据,就是mongo支持的数据类型
+        
+        -db.collection.insert()          插入文档(可以一次插入多条)
+        -db.collection.save()            插入文档
+        -如果不使用_id他俩的用法一样
+        -使用_id,save会替换原有文档
+
+    -查找操作
+        -db.collection.find(query, field)       进行条件查找
+        -query为筛选条件, filed为显示的域(0为隐藏, 1为显示)
+            -格式: db.collection.find({age:12}, {_id:0, age:1})
+        
+        -db.collection.findOne(query, find)     返回符合条件的第一个
+    
+    -Query参数的用法
+        -MongoDB操作符,使用$注明一个特殊意义字符
+        -表达某个特定含义
+        
+        -比较操作符
+            -$eq  = 等于
+                -db.collection.find({age:{$eq:12}}, {_id:0})
+            -$lt  = 小于
+                -db.collection.find({age:{$lt:12}, {_id:0})
+            -$lte = 小于等于
+                -db.collection.find({age:{$lte:12}, {_id:0})
+            -$gt  = 大于
+                -db.collection.find({age:{$gt:12}, {_id:0})
+            -$gte = 大于等于
+                -db.collection.find({age:{$gte:12}, {_id:0})
+            -$ne  = 不等于
+                -db.collection.find({age:{$ne:12}, {_id:0})
+            -$in  = 包含
+                -db.collection.find({age:{$in:[12,13]}, {_id:0})
+            -$nin = 不包含
+                -db.collection.find({age:{$nin:[12, 13]}, {_id:0})
+        
+        -逻辑操作符
+            -$and = 与
+                -db.collection.find({$and[{age:{$lt:18}},{..},{.}], {_id:0})
+            -$or  = 或
+                -db.collection.find($or[{age:12}, {gender: 'M'}], {_id:0})
+            -$not = 非
+                -db.collection.find({age:{$not:{$eq:12}, {_id:0})
+            -$nor = 既不也不
+                -db.collection.find(nor:[{age:12}, {gender: "M"}], {_id:0})
+        
+        -支持数组查找
+            -数组值中任意一项达成即可
+                -db.collection.find({score:{$gt:90}}, {_id:0})
+            -szie(通过数组中元素的个数查找)
+                -db.collection.find({score:{$szie:2}}, {_id:0})
+            -all(数组中同时包含多项的文档)
+                -db.collection.find({socre:{$all[99, 88]}}, {_id:0})
+            -slice(限制数组显示的条数,在field中声明)
+                -db.collection.find({}, {_id:0, score:{$slice:2}})
+                -db.collection.find({}, {_id:0, score:{$slice[1, 2]}})
+        
+        -其他query查询
+            -exists = 使用bool值显示域(true为存在, flase为不存在)
+                -db.calss1.find({name:{$exists: false}}, {_id:0})
+            -mod = 余数查找, [x, y] = 除x余y的
+                -db.class1.find({age:{$mod:[x, y]}}, {_id:0})
+            -type = 数据类型查找
+                -
+
+
+Mongo支持的数据类型
+    -整型
+    -布尔型
+    -浮点型
+    -Array(数组)
+    -TimeStamp(时间戳)
+    -Date
+    -Object
+    -Null
+    -String
+    -Symbol
+    -Binary data
+    -code
+    -regex
+    -ObjectId:如果插入文档时没有指定_id域,系统自动生成
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
