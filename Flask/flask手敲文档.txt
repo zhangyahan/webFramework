@@ -222,7 +222,7 @@
 Django和Flask的区别
 	-Django是一个大而全的框架,有很多自带的组件
 	-Flask是一个短小精悍的框架,有更多的可扩展性
-	-都是通过wsgi来做的
+	-都是通过wsgi协议来做的
 	-Django的request时通过传参的, Flask的请求是导入的
 
 
@@ -274,7 +274,7 @@ Flask提供的功能
 		-装饰器
 		-自定义装饰器放下面
 	-视图
-		-FBV
+		-CBV
 	-请求和响应
 		-请求: request
 		-响应:
@@ -360,3 +360,135 @@ Flask提供的功能
 
 
 #########session实现原理(源码)########
+
+
+###############蓝图#############
+	1.创建蓝图
+		from flask import Blueprint
+
+		ac = Blueprint('ac', __name__)
+
+		@ac.route('/index')
+		def index():
+			return 'index'
+
+	2.注册蓝图
+		from .views.account import ac
+		app.register_blueprint(ac, url_prefix='/api')
+		# url_profix给url添加前缀子域名
+	
+	目标: 给开发者提供目录结构
+
+	其他: 
+		- 自定义模板,静态文件
+		- 某一类url添加前缀
+		- 给一类url添加before_request
+
+
+#############threading.local#############
+	- 与flask没有任何关系
+	作用:
+		- 为每一个线程创建一个独立的空间
+		- 使得线程对自己的空间中的数据进行操作(数据隔离)
+
+	获取线程的唯一标记
+		- threading.get_ident()
+
+	根据一个字典自定义一个类似于threading.local功能
+		import threading
+		import time
+
+		DIC = {} 
+
+		def task(i):
+			ident = threading.get_ident()
+			if ident in DIC:
+				DIC[ident]['xxx'] = i
+			else:
+				DIC[ident] = {'xxx': i}
+
+			time.sleep(2)
+			print(DIC[ident]['xxx'], i)
+
+		for i in range(10):
+			t = threading.Thread(target=task, args=(i,))
+			t.start()
+	
+	为每个携程开辟一段时间进行数据隔离
+		import threading
+		import time
+		import greenlet
+
+		DIC = {} 
+
+		def task(i):
+			# ident = threading.get_ident()
+			ident = greenlet.getcurrent()
+			if ident in DIC:
+				DIC[ident]['xxx'] = i
+			else:
+				DIC[ident] = {'xxx': i}
+
+			time.sleep(2)
+			print(DIC[ident]['xxx'], i)
+
+		for i in range(10):
+			t = threading.Thread(target=task, args=(i,))
+			t.start()
+
+
+#############上下文管理##########
+
+
+###################Flask三日概括##############
+	1. 上下文管理: request
+	2. 上下文管理: session
+		其他: 
+			- app
+			- g
+	
+	3. flask-session组件(第三方)
+	4. pymysql操作数据库
+		数据库连接池
+
+
+#############偏函数###########
+	import functools
+
+	def index(a1, a2):
+		return a1 + a2
+
+	# 将第二个参数绑定到第一个函数的第一个参数上
+	new_func = functools.partial(index, 666)
+
+	ret = new_func(10)
+
+	print(ret)
+
+
+#############super和执行类的区别############
+	super会根据mro的顺序去寻找方法
+	与直接执行父类方法不同
+
+
+##########面向对象的特殊方法#########
+	class Foo(object):
+
+	def __init__(self):
+		# self.storage = {}
+		object.__setattr__(self, 'storage', {})
+
+	def __setattr__(self, key, value):
+		# print(self.storage)
+		print(key, value, self.storage)
+
+
+	def __getattr__(self, item):
+		print(item)
+
+	# pass
+
+	obj = Foo()
+	obj.xx = 123
+
+
