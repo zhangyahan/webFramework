@@ -1,0 +1,176 @@
+1.开发模式
+
+	- 普通开发方式(前后端放在一起)
+	- 前后端分离
+
+
+2.后端开发
+
+	- 为前段提供URL(API/接口的开发)
+	- 永远返回JSON数据
+
+	
+3.Django FBV CBV
+
+	- FBV: function base view
+		简单的函数视图
+
+	- CBV: class base view
+		类视图,继承django.views.View	
+		基于反射实现根据请求方式不同,执行不同的方法
+		原理:
+			a.路由
+				url --> view方法 --> despatch方法(根据反射执行其他方法: GET/POST/PUT/DELETE)	
+
+		流程
+			class StudentsView(MyBaseView, View):
+
+				# def dispatch(self, request, *args, **kwargs):
+				# 	# 反射找到对应的函数
+				# 	func = getattr(self, request.method.lower())
+				# 	# 执行函数
+				# 	ret = func(request, *args, **kwargs)
+				# 	# 返回执行结果
+				# 	return ret
+
+				# def dispatch(self, request, *args, **kwargs):
+				# 	print('before')
+				# 	ret = super(StudentsView, self).dispatch(request, *args, **kwargs)
+				# 	print('after')
+				# 	reutrn ret
+
+				def get(self, request, *args, **kwargs):
+					return HttpResponse('GET')
+
+				def post(self, request, *args, **kwargs):
+					return HttpResponse('POST')
+
+				def put(self, request, *args, **kwargs):
+					return HttpResponse('POST')
+
+				def delete(self, request, *args, **kwargs):
+					return HttpResponse('POST')
+
+		继承(多个类公共的功能,为避免重复的编写)
+			class MyBaseView(object):
+				def dispatch(self, request, *args, **kwargs):
+					print('before')
+					ret = super(MyBaseView, self).dispatch(request, *args, **kwargs)
+					print('after')
+					reutrn ret
+
+
+			class StudentsView(MyBaseView, View):
+
+				# def dispatch(self, request, *args, **kwargs):
+				# 	# 反射找到对应的函数
+				# 	func = getattr(self, request.method.lower())
+				# 	# 执行函数
+				# 	ret = func(request, *args, **kwargs)
+				# 	# 返回执行结果
+				# 	return ret
+
+				# def dispatch(self, request, *args, **kwargs):
+				# 	print('before')
+				# 	ret = super(StudentsView, self).dispatch(request, *args, **kwargs)
+				# 	print('after')
+				# 	reutrn ret
+
+				def get(self, request, *args, **kwargs):
+					return HttpResponse('GET')
+
+				def post(self, request, *args, **kwargs):
+					return HttpResponse('POST')
+
+				def put(self, request, *args, **kwargs):
+					return HttpResponse('POST')
+
+				def delete(self, request, *args, **kwargs):
+					return HttpResponse('POST')
+
+
+
+			class TeachersView(MyBaseView, View):
+
+				# def dispatch(self, request, *args, **kwargs):
+				# 	# 反射找到对应的函数
+				# 	func = getattr(self, request.method.lower())
+				# 	# 执行函数
+				# 	ret = func(request, *args, **kwargs)
+				# 	# 返回执行结果
+				# 	return ret
+
+				# def dispatch(self, request, *args, **kwargs):
+				# 	print('before')
+				# 	ret = super(TeachersView, self).dispatch(request, *args, **kwargs)
+				# 	print('after')
+				# 	reutrn ret
+
+				def get(self, request, *args, **kwargs):
+					return HttpResponse('GET')
+
+				def post(self, request, *args, **kwargs):
+					return HttpResponse('POST')
+
+				def put(self, request, *args, **kwargs):
+					return HttpResponse('POST')
+
+				def delete(self, request, *args, **kwargs):
+					return HttpResponse('POST')
+
+	面试题
+		1.Django中间件
+
+	小知识
+
+
+
+4.列表生成时
+	
+	class Foo:
+		pass
+
+	class Bar:
+		pass
+	
+	v = [item() for item in [Foo, Bar]]
+	# 每个item都是类实例
+	# v就是一个对象列表
+
+
+5.面向对象(继承,封装,多态)
+	
+	- 封装
+
+		- 对同一类方法进行封装
+
+			class File:
+
+				def get(self):
+					pass
+
+				def add(self):
+					pass
+
+		- 将数据封装到对象中
+			
+			class File:
+
+				def __init__(self, a1, a2):
+					self.a1 = a1
+					self.xxx = a2
+
+				def get(self):
+					pass
+
+				def add(self):
+					pass
+
+			obj1 = File(123, 666)
+
+		PS:
+
+restful规范
+
+
+django rest framework框架
