@@ -9,13 +9,13 @@ Python中Web框架的分类
     框架自带b,使用第三方的a和c   -----------> Flask
 
 一个完整的请求流程
-a.启动服务器,等待客户端(用户的浏览器)来连接
-b.在浏览器地址输入URL,与服务器建立连接,浏览器发送请求
-c.服务器收到请求消息,解析请求消息,根据路径和函数的对应关系,找到将要执行的函数
-d.执行函数,打开HTML文件,进行字符串替换,得到一个最终要返回的HTML内容
-e.按照HTTP协议的消息格式要求,把HTML内容回复给用户浏览器(发送响应)
-f.浏览器收到响应的消息之后,按照HTML的规则渲染页面
-g.关闭连接
+    a.启动服务器,等待客户端(用户的浏览器)来连接
+    b.在浏览器地址输入URL,与服务器建立连接,浏览器发送请求
+    c.服务器收到请求消息,解析请求消息,根据路径和函数的对应关系,找到将要执行的函数
+    d.执行函数,打开HTML文件,进行字符串替换,得到一个最终要返回的HTML内容
+    e.按照HTTP协议的消息格式要求,把HTML内容回复给用户浏览器(发送响应)
+    f.浏览器收到响应的消息之后,按照HTML的规则渲染页面
+    g.关闭连接
 
 
 新建一个Django项目
@@ -23,47 +23,321 @@ django-admin startproject 项目名
 
 
 form表单提交
-input标签必须有name属性
-在form表单中添加{% csrf_token %}进行跨站点
-后端接收数据request.POST.get('name属性值')
+    input标签必须有name属性
+    在form表单中添加{% csrf_token %}进行跨站点
+    后端接收数据request.POST.get('name属性值')
 
 
-自定义filter
-    from django import template
-    register = template.Library()
+- 模板
+    - 利用Django模板语言内置的static方法获取
+        {% load static %}
+    - 利用内置的get_static_prefix获取静态文件的路径前缀,自己进行拼接
+        {% get_static_prefix %}
+        获取的settings文件中的STATIC_URL变量
+    - as语法(一个路径多次用到,可以使用as保存到一个变量,可以多次使用)
 
-    # 注册
-    @register.filter(name='sb')
-    def add_sb(arg):
-        return "{} sb.".format(arg)
+
+    自定义filter
+        from django import template
+        register = template.Library()
+
+        # 注册
+        @register.filter(name='sb')
+        def add_sb(arg):
+            return "{} sb.".format(arg)
+        
+        @register.filter(name='addstr')
+        """
+        第一个参数永远是管道符前面的那个变量
+        :param arg:  管道前面那个变量
+        :param arg2: 冒号后面引号里面的编程
+        """
+        def add_sb(arg, arg2):
+            return "{} {}.".format(arg, arg2)
+
+        在模板中{% load 自定义filter文件名 %}进行引入,才能使用
+
+
+
+    自定义simpletag
+        #################### python代码
+        from django import template
+
+        register = template.Library()
+
+
+        @register.simple_tag(name='my_sum')
+        def my_sum(arg1, arg2, arg3):
+            return'{} {} {}'.format(arg1, arg2, arg3)
+
+        #########################模板代码
+        {% load 自定义simpletag文件名 %}
+        {% name名 '参数1' '参数2' ... %}
+
+
+
+    自定义inclusion_tag
+        - 有用于返回html代码
+        @register.inclusion_tag('xxx.html')
+        def xxx(arg):
+            return {'data': arg}
+
+        xxx.html
+            {% for i in data %}
+                {{ i }}
+            {% endfor %}
+
+        home.html
+            {% xxx pattern %}
+
+
+- 视图
+    - CBV(class base view)和FBV(function base view)
+        
+    - request对象(请求相关的所有数据都在里面)
+        - GET             通常用来获取url里的参数
+        - POST            通常获取form表单的参数
+        - method          获取请求的方法
+        - path_info       获取请求的路径
+        - body            如果是post请求获取请求体bytes
+
+    - 上传文件
+        <form action="{% url 'upload' %}", method="post" enctype="multipart/form-data"></form>
+
+        def upload(request):
+        if request.method == 'POST':
+            # 获取文件的名字
+            filename = request.FILES.get('file1').name
+
+            # 在当前打开文件开始写
+            with open(filename, 'wb') as f:
+                # 使用文件对象.chunrs()获取文件内容
+                for i in request.FILES['file1'].chunks():
+                    f.write(i)
+
+
+            return HttpResponse('OK')
+
+
+- 响应response
+    基础必备三件套
+    a,b,c 都是从django.shortcuts中打入
+    a. HttpResponse      返回字符串
+    b. render            返回一个html页面
+    c. redirect          重定向,告诉浏览器去访问另一个网页
+    d. JsonResponse      用来生成json编码的响应
+        - from django.http import JsonResponse
+        - return JsonResponse(data, safe=Flase)
+        - 默认都是返回字典格式
+        - safe参数为Flase表示可以是任何格式
+
+
+
+
+
+- 路由系统
+
+
+- ORM(关系对象映射)
+    - Django-ORM常用字段
+        1. AutoFiled        自增列
+        2. CharFiled        字符串,必须要有max_length
+        3. ForeigKey        外键
+        4. ManytoManyField  多对多
+        5. IntegerField     整数
+        6. DateFiled        日期
+        7. DateTimeField    时间日期
+
+
+    - Django-ORM不常用字段
+        1. AutoField(primary_key=True)      自增列
+        2. BigAutoField(primary_key=True)   big类型的自增列
+        3. SmallIntgerField()               小整数,-32768 ~ 32767
+        4. PositiveSmallIntgerFiled()       正整数
+        5. BigIntgerField()                 长整型
+        6. BoolField()                      布尔类型
+        7. NullBoolField()                  可以为空的布尔值
+        8. IPAddressField()
+        9. URLField()
+        10.SlugFiled()
+        11.UUIDField()
+        12.FilePathField()                  文件路径
+        13.DurationField()                  时间间隔
+        14.DecimelField(max_digits, decimal_place)
     
-    @register.filter(name='addstr')
-    """
-    第一个参数永远是管道符前面的那个变量
-    :param arg:  管道前面那个变量
-    :param arg2: 冒号后面引号里面的编程
-    """
-    def add_sb(arg, arg2):
-        return "{} {}.".format(arg, arg2)
 
-在模板中{% load 自定义filter文件名 %}进行引入,才能使用
+    - 自定义字段
+        class FixedCharField(models.Field):
+        """
+        自定义char类型的字段类
+        """
 
+        def __init__(self, max_length, *args, **kwargs):
+            self.max_length = max_length
+            super(FixedCharField, self).__init__(max_length=max_length,
+                                                 *args,
+                                                 **kwargs)
 
+        def db_type(self, connection):
+            """
+            限定生成数据库表的字段类型为char, 长度为max_length指定的值
+            """
 
-自定义simpletag
-    #################### python代码
-    from django import template
-
-    register = template.Library()
-
-
-    @register.simple_tag(name='my_sum')
-    def my_sum(arg1, arg2, arg3):
-        return'{} {} {}'.format(arg1, arg2, arg3)
-
-    #########################模板代码
-    {% load 自定义simpletag文件名 %}
-    {% name名 '参数1' '参数2' ... %}
+            return 'char(%s)' % self.max_length
 
 
-自定义inclusion_tag
+    - Django-ORM常用选项
+        1. auto_now         每次更新数据时默认当前时间
+        2. auto_now_add     创建记录时默认当前时间
+        3. null             表示该字段可以为空
+        4. unique           表示该字段为唯一索引,值不可以重复
+        5. db_index         表示该字段为索引字段
+        6. default          默认值
+        
+        7. to               表示关联的表,默认id字段
+        8. to_field         自定义关联字段
+        9. related_name     反向查询时的字段名
+        10.on_delete        级联动作
+            - models.CASCADE       删除关联数据,与之关联也删除
+            - models.DO_NOTHING    删除关联数据,引发IntgerrityError
+            - models.PROTECT       删除关联数据,引发ProtectErrpr
+            - models.SET_NULL      删除关联数据,与之关联设置为null
+            - models.SET_DEFAULT   删除关联数据,与之关联设置为默认值
+            - models.SET
+                a. 与之关联的值设置为指定值,SET(值)
+                b. 与之关联的值设置为可执行对象的返回值
+        11.db_constraint    改为Flase表示关联的外键没有约束   
+
+
+    - ORM操作
+        
+        添加数据
+            1. new_object = xxx.object.create(attribute=value)
+
+            2. new_object = xxx()
+               new_object.attribute = value
+               new_object.save()
+
+            3. dic = {'attribute': 'value'}
+               new_object = xxx(**dic)
+               new_object.save()
+        
+        修改数据
+            使用get获取对象,对象.属性修改,对象.save()
+            updata_info = xxx.object.filter(xxx).updata(attr=value)
+            updata_info.save()
+
+        删除数据
+            使用get获取对象,对象.delete()删除
+            del_obj = xxx.object.filter(xxx)
+            del_obj.delete()
+
+        Query_set对象
+            all()                     查询所有结果
+            filter()                  包含了与所给条件相匹配的对象
+            exclude()                 包含了与筛选条件不匹配的对象
+            values()                  返回一个字典
+            values_list()             返回一个列表
+            order_by()                排序
+            reverse()                 翻转
+            distinct()            
+
+
+        具体对象
+            get()                     返回符合条件的一条数据
+            first()                   返回查询到的第一条数据
+            last()                    返回查询到的最后一条数据
+
+
+        bool值
+            exists()                 判断是否存在
+
+
+        具体数值
+            count()                  返回记录条数
+
+
+        双下划线操作
+            __gt                     大于
+            __gte                    大于等于
+            __lt
+            __lte
+            __in                     包含
+            __range                  betwwn之间
+            __contains               不包含
+            __icontains              忽略大小写
+            __startswith             开头
+            __endswith               结尾
+            __year                   判断时间年
+            __month                  判断时间月
+            __day                    判断时间日
+
+
+        外键查询
+            正向查询
+                基于对象
+                    obj = models.xxx.object.get(id=1)
+                    obj.xxx
+
+                基于双下划线
+                    models.xxx.object.filter(id=1).vaules('xxx__field')
+
+            反向查询
+                基于对象
+                    obj = models.xxx.object.get(id=1)
+                    obj.xxx_set.all()
+                    如果在外键中设置了related_name='books'
+                    obj.books.all()
+
+                基于双下划线
+                    models.xxx.object.filter(id=1).values('xxx__field')
+                    如果在外键中设置了related_name='books'
+                    models.xxx.object.filter(id=1).values('books__field')
+
+
+        分组和聚合
+            - 聚合: 根据某个字段进行聚合
+                from django.db.models import Avg, Sum, Min, Max, Count
+                models.xxx.object.all().aggregate(Avg(field))
+
+            - 分组: 将一类的数据进行分组
+                models.xxx.object.all().annotate(xxx=Count(field))
+
+
+        F和Q
+
+            F查询在查询的过程中获取字段的值
+            
+            Q查询在查询的过程中可以进行或比较 Q() | Q()
+            默认的filter参数都是(且)操作
+
+
+        事务(一件事开始到结束)
+            
+            from django.db import transaction
+            with tarsaction.atomic():
+                # 在with语句下的ORM操作视为一个原子性操作
+                # 当语句发生错误时,回滚到最原始的状态
+            except Exception as e:
+                print(e)
+
+
+        执行原生的SQL语句
+
+
+- ORM OneToOne关联
+    - 当一张表的某些字段查询的比较频繁,另外一些字段查询的不是特别频繁
+      把不怎么常用的字段,单独拿出来做成一张表进行一对一关联
+
+    - 即保证数据都完整的保存下来,又能保证大部分的检索更快
+
+    - OneToOneField(to='xxx')
+
+
+
+
+
+
+
+
+

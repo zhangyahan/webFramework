@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{# 引用自定义模板标签 #}
+{% load template_tags_test %}
+
+{% block head %}
+	home
+{% endblock %}
+
+
+
+{% block body %}		
+	<h1>
+		{{ Welcometomy | myfilter:"home" }}
+		{# {{ topone | myfilter: "home" }} #}
+	</h1>
+	<p>
+		{% mysiple "hello, what is your name?" %}
+	</p>
+	{% myinclusion 10 %}
+	<hr>
+	{% myinclusion 5 %}
+	<a href="{% url 'login' %}">login or register</a>
+	<form action="{% url 'upload' %}", method="post" enctype="multipart/form-data">
+		{% csrf_token %}
+		<input type="file", name="file1">
+		<input type="file", name="file2">
+		<input type="submit">
+	</form>
+{% endblock %}
+

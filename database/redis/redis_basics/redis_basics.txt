@@ -1,0 +1,111 @@
+
+
+Redis是一个高性能的key-value数据库
+
+
+Redis与其他键值对缓存数据库主要的三个特点
+	- Redis支持数据的持久化,可以将内存中数据保存在磁盘中,重启
+	  的时候可以再次加载进行使用
+	- Redis不仅仅支持简单的key-value类型的数据,同时还提供
+	  list,set,zset,hash等数据结构的存储
+	- Redis支持数据的备份, 即master-slave模式的数据备份
+
+
+Redis优势
+	- 性能高
+	- 丰富的数据类型
+	- 原子型,redis的所有操作都是原子性的,通过MULTI和EXEC指
+	  令包起来
+	- 丰富的特性,支持publish/subscribe,通知,key过期等特性
+
+
+Redis与其他键值对数据库的不同
+	- Redis有着更为复杂的数据结构并且提供对他们的原子性操作,
+	  这是一个不同与其他数据库的进化路径,Redis的数据类型都是
+	  基于基本数据类型结构的同时对程序员同名,无需进行额外的抽象
+	- Redis运行在内存中但是可以持久化存储到硬盘上,所以在对不同
+	  数据集进行高速读写时需要权衡内存,因为数据量不能大于硬件
+	  内存,在内存数据库方面的另一个优点时,相比在磁盘上同时的
+	  复杂的数据结构,在内存中操作起来非常简单,这样Redis可以
+	  做很多内部复杂性很强的事情,同时在磁盘格式方面他们时紧凑
+	  的以追加的方式产生的,因为他们并不会进行随机访问
+
+
+Redis配置
+	- Redis配置文件在Redis安装目录下,文件名为redis.conf
+	- 也可以通过config命令进行查看或设置配置项
+	- 语法
+		- 获取命令 config get config_setting_name
+		- 设置命令 config set config_setting_name new_config_value
+	- redis.conf配置项说明
+		- redis默认不是以守护进程的方式运行,使用yes启动守护进程
+			- daemonize no
+		- 当redis以守护进程方式运行时,默认写入/var/run/redis.pid
+			- pidfile /var/run/redis.pid
+		- 指定redis监听端口
+			- port xxxx
+		- 绑定的主机地址
+			- bind 127.0.0.1
+		- 配置密码
+			- requirepass xxxx
+
+
+Redis数据类型
+	- Redis支持5种数据类型
+		- string(字符串)
+		- hash(哈希)
+		- set(集合)
+		- zset(sorted set: 固定集合)
+	
+	- String(字符串)
+		- string是redis最基本的类型,string类型的值最大能存储521MB
+			- set key string   设置值
+			- get key          获取值
+
+	- Hash(哈希)
+		- Redis hash是一个键值对集合,每个hash可以存储2**32-1键值对
+		- Redis hash是一个string类型的field和value的映射表
+			- hmset key field value field value   设置值
+			- hget key field                      获取值
+	
+	- List(列表)
+
+
+
+
+Redis命令
+	- Redis命令用于在redis服务上执行操作
+	- 要在redis服务上执行命令需要一个redis客户端
+	- Redis客户端的基本语法
+		- 使用redis-cli开启客户端,输入ping命令查看是否返回FONG
+	- 在远程服务器上执行命令
+		- redis-cli -h host -p port -a password
+
+
+Redis键(key)
+	- Redis键命令用于管理redis的键
+	- 语法 command key_name
+	- Redis key命令
+		- del key               用于在key存在时删除key
+		- dump key              序列化给定key,并返回被序列化的值?
+		- exists key            检查key是否存在,返回1/0
+		- expire key outtime    设置键的过期时间,以秒计
+		- expireat key outime   设置键的过期时间,时间戳以秒计
+		- pexpire key outtime   设置键的过期时间,毫秒计
+		- pexpireat key outtime 设置键的过期时间,时间戳毫秒计
+		- keys parttern         查找所有符合给定模式的key
+		- move key db           将当前数据库的key移动到db中
+		- persist key           移除key的过期时间
+		- pttl key              以毫秒返回key的剩余过期时间
+		- tll key               以秒返回key的剩余过期时间
+		- randomkey             从当前数据库中随机返回一个key
+		- rename key newkey     修改key的名称
+		- renamenx key newkey   尽当newkey不存在时,修改key的名称
+		- type key              返回key所存储的值的类型
+
+
+Redis字符串(String)
+	- Redis字符串数据类型的相关命令用于管理redis字符串值
+	- 基本语法 command key_name
+	- Redis字符串命令
+		- set key value           设置
