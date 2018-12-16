@@ -363,6 +363,7 @@ form表单提交
 
         执行原生的SQL语句
 
+
 - ORM OneToOne关联
     - 当一张表的某些字段查询的比较频繁,另外一些字段查询的不是特别频繁
       把不怎么常用的字段,单独拿出来做成一张表进行一对一关联
@@ -425,11 +426,81 @@ form表单提交
         delete_cookie()
 
     - Session
+        Session是依赖Cooie的,保存在服务端的键值对
+        
+        dsadsadsada: {"is_active": 1, "username": "zyh"}
+        ewwfdefwfde: {"is_active": 1, "username": "whh"}
         
 
+        存Session
+            1.生成一个随机字符串为键的字典
+            2.将用户的信息存到上面的字典中
+            3.将随机字符串作为Cookie发送到前端
+        去Session
+            1.从Cookie中取出随机字符串
+            2.从Session中取出与随机字符串将匹配的字典
 
+        request.session['key'] = value  # 设置session
+        request.session.get['key']  # 获取session
+        request.session.flush()  # 删除session和cookie
+        request.session.delete()  # 只删除session
+        requset.session.clear_expired()  # 将所有session有效期小于今天的数据删除 
+        request.session.set_expiry(value)  # 设置超时时间
+    
+        Session的配置
+            - 数据库Session
+                SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # 引擎(默认)
 
+            - 缓存Session
+                SESSION_ENGINE = 'django.contrib.sessions.backends.cache'  # 引擎
+                SESSION_CACHE_ALLAS = 'default'                            # 使用的缓存别名(默认内存缓存,也可以是memcache)
+                                                                             此处别名依赖缓存的设置
+            
+            - 文件Session
+                SESSION_ENGINE = 'django.contrib.session.backends.file'  # 引擎
+                SESSION_FILE_PATH = None                                 # 缓存文件路径,如果为None,则使用tempfile模块
+                                                                           获取一个临时地址tempfile.gettempfir()
+            
+            - 缓存+数据库
+                SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'  # 引擎
 
+            - 加密Cooie Session
+                SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'  # 引擎
+
+            - 其他公用设置项
+                SESSION_COOKIE_NAME = 'sessionid'                           # session的cookie保存在浏览器上时的key
+                SESSION_COOKIE_PATH = '/'                                   # session的cookie保存的路径(默认)
+                SESSION_COOKIE_DOMAIN = None                                # session的cookie保存的域名(默认)
+                SESSION_COOKIE_SECURE = False                               # 是否HTTPS传输Cookie(默认)
+                SESSION_COOKIE_HTTPONLY = True                              # 是否session的cookie只支持http传输(默认)
+                SESSION_COOKIE_AGE = 120960                                 # Session的cookie失效时间(2周)(默认)
+                SESSION_EXPIPE_AT_BROWSER_CLOSE = Flase                     # 是否关闭浏览器使得Session过期(默认)
+                SESSION_SAVE_EVERY_REQUEST = Flase                          # 是否每次请求都保存Session,默认修改之后才保存(默认)
+        
+
+- CBV中的装饰器
+    类方法装饰器和函数装饰器的区别
+        类方法的第一个参数永远是self,而函数装饰器的第一个参数是自己定义的
+    
+    类装饰器
+        from django.utils.decorators import method_decorator
+        使用method_decorator装饰器进行装饰
+        @method_decorator(装饰器函数)
+        def 类方法(self):
+            pass
+
+        或者直接给类加装饰器
+        @method_decorator(装饰器函数, name='method')
+
+        
+        @method_decorator(wapper)  
+        # 如果想给类中所有方法加装饰器,可以直接给disoatch方法加,dispatch为最先执行的方法
+        def dispatch(self, request, *args, **kwargs):
+            return super(UserInfo, sefl).dispatch(request, *args, **kwargs)
+
+    如果想不校验csrf_token, 加上装饰器csrf_exempt
+    如果想指定某个视图函数做csrf的校验, 加上csrf_protect装饰器
+    from django.views.decorators.csrf import csrf_exempt, csrf_protect
 
 
 

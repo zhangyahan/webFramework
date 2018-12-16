@@ -13,7 +13,7 @@ def wapper(func):
 		else:
 			next_path = request.path_info
 			print(next_path)
-			return redirect('/login/?next={}'.format(next_path))
+			return redirect('/app01/login/?next={}'.format(next_path))
 
 	return inner
 
@@ -24,7 +24,7 @@ def home(request):
 	# is_login = request.get_signed_cookie('is_login', default=0, salt='~!@#$%^&*()_+')
 
 	# if is_login:
-	return render(request, 'home.html')
+	return render(request, 'app01/home.html')
 	# else:
 	# 	return redirect(reverse('login'))
 
@@ -40,12 +40,12 @@ def login(request):
 			if next_path:
 				ret = redirect(next_path)  # 创建一个请求对象
 			else:
-				ret = redirect('/home/')
+				ret = redirect('/app01/home/')
 			# ret.set_cookie(key='is_login', value=1)  # 设置cookie
 			ret.set_signed_cookie('is_login', 1, salt='~!@#$%^&*()_+', )  # 设置加盐的cookie
 			return ret
 	
-	return render(request, 'login.html')
+	return render(request, 'app01/login.html')
 
 
 def logout(request):
