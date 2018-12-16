@@ -120,6 +120,16 @@
 
 	面试题
 		1.Django中间件
+			- process_request
+			- process_view
+			- process_response
+			- process_exception
+			- process_render_template
+
+		2. 使用中间件做过什么
+			- 权限
+			- 用户登录验证
+			- Django的csrf是如何实现的
 
 	小知识
 

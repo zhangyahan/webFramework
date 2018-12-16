@@ -3,10 +3,12 @@
     b.根据用户访问不同的路径执行不同的函数
     c.从Html读取出内容,并且完成字符串的替换
 
+
 Python中Web框架的分类
     框架自带a,b,c              -----------> Tornado
     框架自带b和c,使用第三方的a   -----------> Django
     框架自带b,使用第三方的a和c   -----------> Flask
+
 
 一个完整的请求流程
     a.启动服务器,等待客户端(用户的浏览器)来连接
@@ -26,6 +28,16 @@ form表单提交
     input标签必须有name属性
     在form表单中添加{% csrf_token %}进行跨站点
     后端接收数据request.POST.get('name属性值')
+
+
+
+
+
+
+
+
+
+
 
 
 - 模板
@@ -130,9 +142,6 @@ form表单提交
         - return JsonResponse(data, safe=Flase)
         - 默认都是返回字典格式
         - safe参数为Flase表示可以是任何格式
-
-
-
 
 
 - 路由系统
@@ -240,7 +249,16 @@ form表单提交
             values_list()             返回一个列表
             order_by()                排序
             reverse()                 翻转
-            distinct()            
+            distinct()
+            select_related()          优化一对一, 多对一的查询语句          
+                Employee.objects.select_related().values('name', 'department__name')
+
+            prefetch_related()        优化多对多, 一对多的查询语句
+                Employee.objects.prefetch_related().values('name', 'department__name')
+
+            bulk_create(objs, num)    批量创建数据
+                objs = [models.Book(title=沙河{}.format(i)) for i in range(100)]
+                models.Book.objects.bulk_create(objs, 10)
 
 
         具体对象
@@ -303,6 +321,27 @@ form表单提交
             - 分组: 将一类的数据进行分组
                 models.xxx.object.all().annotate(xxx=Count(field))
 
+                
+            - 单表分组聚合
+                SELECT dept, AVG(salary) AS avg FROM employee 
+                GROUP BY dept
+
+                Employee.objects.values('dept').annotate(avg=Avg('salary'))
+
+            - 多表分组聚合
+                select department.name, Avg(employee.salary) from employee 
+                inner join department 
+                on (employee.department_id=department.id) 
+                group by department.name;
+                
+                Employee.objects
+                .values('department_id')
+                .annotate(avg=Avg('salary'))
+                .values('department__name', 'avg')
+
+
+
+
 
         F和Q
 
@@ -324,14 +363,69 @@ form表单提交
 
         执行原生的SQL语句
 
-
 - ORM OneToOne关联
     - 当一张表的某些字段查询的比较频繁,另外一些字段查询的不是特别频繁
       把不怎么常用的字段,单独拿出来做成一张表进行一对一关联
 
     - 即保证数据都完整的保存下来,又能保证大部分的检索更快
+    
+    - 和外键类似,但是多了一个不能重复的约束
 
     - OneToOneField(to='xxx')
+
+
+- ORM ManyToMany关联
+    - 多对多的三种方式
+        1. ORM ManToManyField自动生成第三张表
+            - 关系表中没有额外的字段
+            - field = models.ManyToMany(to='xxx')
+
+        2. 手动添加一张关系表, 分别关联那两张表
+
+        3. ORM ManyToManyField的through属性指定表名(自己创建的关系表)
+            - 关系表中有额外的字段(需要一些额外字段保存有用的数据)
+            - 注意事项:
+                through_fields=(field1, field2)
+                field是关系表通过那个字段可以找到ManyToMany指定的表
+                没有ORM封装的方法
+
+
+- Csrf简单用法
+    - 跨站点请求访问
+    - 防止跨站请求访问
+    - {% csrf_token %}
+
+    问题:
+        1. 钓鱼网站的页面和正经网站的页面对浏览器来说有什么区别?(页面怎么来的)
+            钓鱼网站的页面是由 钓鱼网站的服务端给你返回的
+            正经网站的页面是由 正经网站的服务端给你返回的
+    
+        2. Django中内置了一个专门处理csrf问题的中间件
+           django.middleware.csrf.CsrfViewMiddleware
+
+           这个中间件做的事情
+               1. 在render返回页面的时候,在页面中塞一个隐藏的input标签
+
+               2. 当提交POST数据的时候,帮你做校验,如果校验未通过就拒绝这次请求
+                
+
+- 分页 /home/zyh/Python/webFramework/Django/Paging.py
+
+
+- Cookie和Session
+    - Cookie
+        由于HTTP协议是无状态的,cookie和session是用来保存用户状态的
+        cookie是保存在浏览器上的,session是保存在客户端的 
+
+        cookie是默认关闭浏览器就失效了 
+        set_cookie()   
+        get_cookie()
+        set_signed_cookie()
+        get_signed_cookie()
+        delete_cookie()
+
+    - Session
+        
 
 
 
