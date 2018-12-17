@@ -1,0 +1,76 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>主页</title>
+</head>
+<body>
+	{# {% csrf_token %} #}
+	<input type="number" name="first_num"> + <input type="number" name="last_num"> = <b id="eq"></b>
+	<p>
+		<button id="submit">计算</button>
+	</p>
+</body>
+<script src="{% static 'js/jquery.js' %}"></script>
+<script src="{% static 'js/csrfToken.js' %}"></script>
+<script>
+
+
+	$("#submit").click(function () {
+		var first_num = $('[name="first_num"]').val();
+		var last_num = $('[name="last_num"]').val();
+		var csrfmiddlewaretoken = $('[name="csrfmiddlewaretoken"]').val();
+
+		// 1. 将csrf_token获取到直接发送到后台
+		// $.ajax({
+		// 	url: "{% url 'ajax' %}",
+		// 	type: "POST",
+		// 	data: {"first_num": first_num, 
+		// 		   "last_num": last_num, 
+		// 		   "csrfmiddlewaretoken": csrfmiddlewaretoken},
+		// 	success: function (data) {
+		// 		$("#eq").html(data['data'])
+		// 	}
+		// })
+
+	    // 2. 通过获取返回的cookie中的字符串放置到请求头中(需要引入jquery.cookie.js插件)
+	    // $.ajax({
+     //        url: 'xxx',
+     //        type: 'POST',
+     //        header: {'X-CSRFToken': $.cookie('csrftoken')},  // 从Cookie取csrf_token,并设置ajax请求头
+     //        data: {"username": xxx, "password": xxx},
+     //        success: function (data) {
+     //            xxxx
+     //        }
+     //    })
+
+     	// 3. 自己写js脚本(见官方文档), 只需引入即可
+     	$.ajax({
+			url: "{% url 'ajax' %}",
+			type: "POST",
+			data: {"first_num": first_num, 
+				   "last_num": last_num},
+			success: function (data) {
+				$("#eq").html(data['data'])
+			}
+		})
+
+	})
+
+	// $("#submit").click(function () {
+	// 	var first_num = $('[name="first_num"]').val();
+	// 	var last_num = $('[name="last_num"]').val();
+
+	// 	$.ajax({
+	// 		url: "{% url 'ajax' %}",
+	// 		type: "GET",
+	// 		data: {"first_num": first_num, "last_num": last_num},
+	// 		success: function (data) {
+	// 			$("#eq").html(data['data'])
+	// 		}
+	// 	})
+
+	// })
+</script>
+</html>

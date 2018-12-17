@@ -1,0 +1,64 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<link rel="stylesheet" href="{% static 'plugs/bootstrap/css/bootstrap.min.css' %}">
+</head>
+<body>
+	<!-- <form novalidate method="POST">
+		{% csrf_token %}
+		{{ form_obj.as_p }}
+		<p><input type="submit"></p>
+	</form> -->
+
+<!-- 自己逐个字段单独写 -->
+	<div class="container">
+		<div class="row">
+			<div class="col-xs-6 col-xs-offset-3">
+				<form action="" novalidate method="POST">
+					{% csrf_token %}
+
+					<div class="form-group {% if form_obj.username.errors.0 %}
+																   has-error
+																 {% else %}
+																   has-success
+																 {% endif %}">
+						{{ form_obj.username.label }}
+						{{ form_obj.username }}
+						<span class="help-block">{{ form_obj.username.errors.0 }}</span>
+					</div>
+
+					<div class="form-group {% if form_obj.username.errors.0 %}
+																   has-error
+																 {% else %}
+																   has-success
+																 {% endif %}">
+						{{ form_obj.password.label }}
+						{{ form_obj.password }}
+						<span class="help-block">{{ form_obj.password.errors.0 }}</span>
+					</div>
+
+					<div class="form-group {% if form_obj.username.errors.0 %}
+																   has-error
+																 {% else %}
+																   has-success
+																 {% endif %}">
+						{{ form_obj.re_password.label }}
+						{{ form_obj.re_password }}
+						<span class="help-block">{{ form_obj.re_password.errors.0 }}</span>
+					</div>
+
+					<div>
+						<button class="btn btn-primary">提交</button>
+					</div>
+
+
+				</form>
+			</div>
+		</div>
+	</div>
+	
+</body>
+</html>
