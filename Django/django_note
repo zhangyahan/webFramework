@@ -564,6 +564,7 @@ form表单提交
             1. 前端通过JS代码做校验    --->  最好有
             2. 后端做校验             --->  必须要有(因为前端的校验可以被跳过)
     
+
     - Form组件的用法
         1. from django import forms
         2. 定义一个form类
@@ -591,11 +592,16 @@ form表单提交
         取信息
             所有的数据都在form_obj.cleaned_data是一个字典
 
+        存数据
+            models.objects.create(**form_obj.cleaned_data)
+
+
     - Form组件的字段(常用)
         forms.CharField()                   # 普通文字框
         forms.EmailField()                  # 邮箱框
         forms.ChoiceField()                 # 枚举/单选/单选下拉框
-        froms.forms.MultipleChoiceField()   # 多选/多选下拉框
+        froms.MultipleChoiceField()   # 多选/多选下拉框
+
 
     - Form字段的属性
         label="xxx"                         # label头
@@ -608,6 +614,8 @@ form表单提交
         min_length=6                        # 文本最小长度
         error_messages={}                   # 错误信息,与定义的规则相符合
         widget=forms.forms.TextInput        # 小部件
+        validators=[]                       # 校验
+
 
     - Widget小部件(为Form字段属性)
         - 字段/方法(当不定义额外属性时为方法)
@@ -623,3 +631,176 @@ form表单提交
             attrs={"class": "c1"}           # 定义标签属性
             render_value=True               # 多用于密码框,当输入不符合规则时,保留输入的内容
 
+
+    - Django内置正则校验
+        1. 需导入正则类
+            from django.core.validators import RegexValidator
+            RegexValidator("正则表达式", "错误信息")
+
+        2. 在字段属性中添加validators
+            phone = forms.CharField(
+                label='手机号',
+                max_length=11,
+                min_length=11,
+                # 自定义校验规则
+                validators=[RegexValidator(r'^[0-9]+$', '请输入数字'),
+                            RegexValidator(r'^1[3-9][0-9]{9}+$', '必须以159开头')],
+            )
+
+
+    - 自定义验证(源码)
+        form_obj.is_valid()都干了什么
+
+        生成两个空字典
+            self._errors = ErrorDict()  ------->  {} 用来放错误消息
+            self.cleaned_data = {}      ------->  {} 用来放校验通过的数据
+
+        执行三个方法
+
+            self._clean_fields()
+                循环了一个self.fields().items()
+                字段名    字段对象
+
+                如果有错误:
+                    self._errors["name"] = ""
+
+                没有错误    
+                    self.cleaned_data["name"] = value (就是用户填写的值)
+
+                如果都没有报错最后会执行一个钩子函数
+                    value = getattr(self, 'clean_%s' % name)()
+                    self.cleaned_data[name] = value
+
+                所以在继承forms.Form的类中定义一个以clean_开头字段名结尾的方法
+                导入 from django.core.exceptions import ValidationError
+                def clean_username(self):
+                    value = self.cleaned_data["username"]  # 获取每个字段的value(用户填写的)
+                    if '金瓶梅' in value:
+                        raise ValidationError('这个名字不符合社会主义核心价值观!')
+                    return value
+
+
+            self._clean_form()  
+                # 调用对象的.clean()方法, 但是默认对象继承的clean方法, 
+                  啥都没干, 到想让他干点什么的时候, 就可以重写这个方法
+
+                # 重写父类的clean方法, 自定义验证方式并抛出异常
+                def clean(self):
+                    # 此时通过校验的数据都保存在self.cleaned_data中
+                    passowrd = self.cleaned_data.get("password")
+                    re_password = self.cleaned_data.get('re_password')
+                    if passowrd != re_password:
+                        self.add_error('re_password', ValidationError('两次密码不一致'))
+                        raise ValidationError('两次密码不一致')
+                    else:
+                        return self.cleaned_data
+
+
+            self._post_clean()
+
+
+    - 从数据库中获取chooies
+        city = forms.ChoiceField(
+            choices=(models.City.objects.all().values_list("id", "city_name"),),
+            label="城市",
+            initial=1,
+            widget=forms.widgets.Select,) # 单选下拉框
+
+        # 重写init方法
+        def __init__(self, *args, **kwargs):
+            super(RegForm, self).__init__(*args, **kwargs)
+            # 每次加载时从数据库更新字段
+            self.fields['city'].widget.choices = models.City.objects.all().values_list("id", "city_name")
+
+
+
+- 中间件
+    两个需求
+        1. URL的白名单 url = ['/xx/', '/oo/']
+        2. 登录之后才能访问某些URL      -->   之前使用装饰器
+
+    中间件的定义
+        中间件是一个用来处理Django的请求和响应的框架级别的钩子
+        他是一个轻量, 低级别的插件系统, 用于在全局范围内改变Django的输入和输出
+        每个中间件都负责做一些特定的功能, 但是由于其影响的是全局,
+        所以需要谨慎使用, 使用不当会影响性能
+
+        说白了就是在wsgi之后 urls.py之前 在全局操作Django请求和响应的模块
+
+
+    中间件的使用
+        5个固定的方法
+            process_request(self, reuqest)                                   # 请求进来时执行的方法(重要)
+                执行顺序:
+                    执行顺序为正序执行
+                何时执行:
+                    当请求进来时
+                返回值
+                    process_request方法的返回值可以是None或一个HttpResponse对象, 
+                    如果是None, 则继续按照Django定义的规则向后继续执行, 
+                    如果是HttpResponse对象,则直接返回给用户
+                
+
+            process_views(self, request, view_func, view_args, view_lwargs)  # 视图
+                执行顺序:
+                    正序执行
+                何时执行:
+                    在urls.py中找到对应关系之后, 在执行真正的视图函数之前执行
+                返回值
+                    返回None则继续执行, 返回HttpResponse则直接返回给用户
+
+
+            process_exception(self, request, exception)                      # 错误
+                执行顺序:
+                    倒序执行
+                何时执行:
+                    只有在视图函数出现异常时执行
+                返回值:
+                    返回None,执行后续中间件的process_exception方法
+                    返回HttpResponse对象, 直接返回给用户
+
+            process_template_response(self, request, response)               # 模板
+                执行顺序:
+                   倒序执行
+                何时执行:
+                    视图函数执行完, 在执行函数返回的响应对象的render方法之前执行
+                返回值:
+                    返回None,执行后续中间件的process_template_response方法
+                    返回HttpResponse对象, 直接返回给用户
+
+            process_response(self, request, response)                        # 响应回去时执行的方法(重要)
+                执行顺序:
+                    执行顺序为倒序执行
+                何时执行:
+                    当有响应时执行
+                返回值:
+                    process_response方法的返回值必须是HttpResponse对象
+                    它有两个参数, 一个request, 一个response, 
+                    request对象都一样, response是视图函数返回的HttpResponse对象
+                
+
+        Django调用注册中间件中五个方法的顺序
+            1. process_request
+            2. process_views   
+            3. 有异常, process_exception
+            4. 如果视图函数返回对象有render方法, process_template_response
+            5. process_response
+
+
+
+
+        找一个地方写一个类
+            from django.utils.deprecation import MiddlewareMixin
+
+            class SelfMiddleWare(MiddlewareMixin):
+                # 在这里写方法
+                # 上面的五个方法
+                def process_request(self, request):
+                    pass
+
+
+
+
+
+
+  

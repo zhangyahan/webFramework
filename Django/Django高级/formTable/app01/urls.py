@@ -7,5 +7,6 @@ urlpatterns = [
 
 	# 使用form组件
 	url(r'^register2/$', views.register2, name="register2"),
+
 	
 ]

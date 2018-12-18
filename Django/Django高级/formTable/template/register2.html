@@ -30,7 +30,7 @@
 						<span class="help-block">{{ form_obj.username.errors.0 }}</span>
 					</div>
 
-					<div class="form-group {% if form_obj.username.errors.0 %}
+					<div class="form-group {% if form_obj.password.errors.0 %}
 																   has-error
 																 {% else %}
 																   has-success
@@ -40,7 +40,7 @@
 						<span class="help-block">{{ form_obj.password.errors.0 }}</span>
 					</div>
 
-					<div class="form-group {% if form_obj.username.errors.0 %}
+					<div class="form-group {% if form_obj.re_password.errors.0 %}
 																   has-error
 																 {% else %}
 																   has-success
@@ -50,6 +50,30 @@
 						<span class="help-block">{{ form_obj.re_password.errors.0 }}</span>
 					</div>
 
+					<div class="form-group {% if form_obj.email.errors.0 %}
+																   has-error
+																 {% else %}
+																	 has-success
+																 {% endif %}">
+						{{ form_obj.email.label }}
+						{{ form_obj.email }}
+						<span class="help-block">{{ form_obj.email.errors.0 }}</span>
+					</div>
+
+					<div class="form-group {% if form_obj.phone.errors.0 %}
+																   has-error
+																 {% else %}
+																	 has-success
+																 {% endif %}">
+						{{ form_obj.phone.label }}
+						{{ form_obj.phone }}
+						<span class="help-block">{{ form_obj.phone.errors.0 }}</span>
+					</div>
+					
+					<div>
+						{{ form_obj.city.label }}
+						{{ form_obj.city }}
+					</div>
 					<div>
 						<button class="btn btn-primary">提交</button>
 					</div>
@@ -62,3 +86,40 @@
 	
 </body>
 </html>
+
+<ul>
+	<li>
+		username
+		<ul class="errorlist">
+			<li>该字段不能为空</li>
+		</ul>
+	</li>
+
+	<li>
+		password
+		<ul class="errorlist">
+		<li>该字段不能为空</li>
+		</ul>
+	</li>
+
+	<li>
+		re_password
+		<ul class="errorlist">
+			<li>该字段不能为空</li>
+		</ul>
+	</li>
+
+	<li>
+		email
+		<ul class="errorlist">
+			<li>该字段不能为空</li>
+		</ul>
+	</li>
+
+	<li>
+		phone
+		<ul class="errorlist">
+			<li>该字段不能为空</li>
+		</ul>
+	</li>
+</ul>
