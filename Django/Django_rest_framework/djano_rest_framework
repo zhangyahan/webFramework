@@ -1,0 +1,351 @@
+1.开发模式
+
+	- 普通开发方式(前后端放在一起)
+	- 前后端分离
+
+
+2.后端开发
+
+	- 为前段提供URL(API/接口的开发)
+	- 永远返回JSON数据
+
+	
+3.Django FBV CBV
+
+	- FBV: function base view
+		简单的函数视图
+
+	- CBV: class base view
+		类视图,继承django.views.View	
+		基于反射实现根据请求方式不同,执行不同的方法
+		原理:
+			a.路由
+				url --> view方法 --> despatch方法(根据反射执行其他方法: GET/POST/PUT/DELETE)	
+
+		流程
+			class StudentsView(MyBaseView, View):
+
+				# def dispatch(self, request, *args, **kwargs):
+				# 	# 反射找到对应的函数
+				# 	func = getattr(self, request.method.lower())
+				# 	# 执行函数
+				# 	ret = func(request, *args, **kwargs)
+				# 	# 返回执行结果
+				# 	return ret
+
+				# def dispatch(self, request, *args, **kwargs):
+				# 	print('before')
+				# 	ret = super(StudentsView, self).dispatch(request, *args, **kwargs)
+				# 	print('after')
+				# 	reutrn ret
+
+				def get(self, request, *args, **kwargs):
+					return HttpResponse('GET')
+
+				def post(self, request, *args, **kwargs):
+					return HttpResponse('POST')
+
+				def put(self, request, *args, **kwargs):
+					return HttpResponse('POST')
+
+				def delete(self, request, *args, **kwargs):
+					return HttpResponse('POST')
+
+		继承(多个类公共的功能,为避免重复的编写)
+			class MyBaseView(object):
+				def dispatch(self, request, *args, **kwargs):
+					print('before')
+					ret = super(MyBaseView, self).dispatch(request, *args, **kwargs)
+					print('after')
+					reutrn ret
+
+
+			class StudentsView(MyBaseView, View):
+
+				# def dispatch(self, request, *args, **kwargs):
+				# 	# 反射找到对应的函数
+				# 	func = getattr(self, request.method.lower())
+				# 	# 执行函数
+				# 	ret = func(request, *args, **kwargs)
+				# 	# 返回执行结果
+				# 	return ret
+
+				# def dispatch(self, request, *args, **kwargs):
+				# 	print('before')
+				# 	ret = super(StudentsView, self).dispatch(request, *args, **kwargs)
+				# 	print('after')
+				# 	reutrn ret
+
+				def get(self, request, *args, **kwargs):
+					return HttpResponse('GET')
+
+				def post(self, request, *args, **kwargs):
+					return HttpResponse('POST')
+
+				def put(self, request, *args, **kwargs):
+					return HttpResponse('POST')
+
+				def delete(self, request, *args, **kwargs):
+					return HttpResponse('POST')
+
+
+
+			class TeachersView(MyBaseView, View):
+
+				# def dispatch(self, request, *args, **kwargs):
+				# 	# 反射找到对应的函数
+				# 	func = getattr(self, request.method.lower())
+				# 	# 执行函数
+				# 	ret = func(request, *args, **kwargs)
+				# 	# 返回执行结果
+				# 	return ret
+
+				# def dispatch(self, request, *args, **kwargs):
+				# 	print('before')
+				# 	ret = super(TeachersView, self).dispatch(request, *args, **kwargs)
+				# 	print('after')
+				# 	reutrn ret
+
+				def get(self, request, *args, **kwargs):
+					return HttpResponse('GET')
+
+				def post(self, request, *args, **kwargs):
+					return HttpResponse('POST')
+
+				def put(self, request, *args, **kwargs):
+					return HttpResponse('POST')
+
+				def delete(self, request, *args, **kwargs):
+					return HttpResponse('POST')
+
+
+	- 面试题
+		1.Django中间件
+			- process_request
+			- process_view
+			- process_response
+			- process_exception
+			- process_render_template
+
+		2. 使用中间件做过什么
+			- 权限
+			- 用户登录验证
+			- Django的csrf是如何实现的?
+				在process_views中验证
+					from django.views.decrators.csrf import csrf_exempt
+					@csrf_exempt
+					def index_view(request):
+						# 该视图函数免除对csrf的验证
+				去请求体或cookie中获取csrf_token
+
+		3.
+			情况一:
+				MIDDLEWARE = [
+				    'django.middleware.security.SecurityMiddleware',
+				    'django.contrib.sessions.middleware.SessionMiddleware',
+				    'django.middleware.common.CommonMiddleware',
+				    'django.middleware.csrf.CsrfViewMiddleware',  # 全站使用csrf认证
+				    'django.contrib.auth.middleware.AuthenticationMiddleware',
+				    'django.contrib.messages.middleware.MessageMiddleware',
+				    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+				]
+
+				from django.views.decrators.csrf import csrf_exempt
+					@csrf_exempt
+					def index_view(request):
+						# 该视图函数免除对csrf的验证
+
+			情况二:
+				MIDDLEWARE = [
+				    'django.middleware.security.SecurityMiddleware',
+				    'django.contrib.sessions.middleware.SessionMiddleware',
+				    'django.middleware.common.CommonMiddleware',
+				    # 'django.middleware.csrf.CsrfViewMiddleware',  # 全站不使用csrf认证
+				    'django.contrib.auth.middleware.AuthenticationMiddleware',
+				    'django.contrib.messages.middleware.MessageMiddleware',
+				    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+				]
+
+				from django.views.decrators.csrf import csrf_protect
+					@csrf_protect
+					def index_view(request):
+						# 该视图函数进行csrf的验证
+
+
+	- CBV小知识, csrf时需要使用
+		- @method_decorator(csrf_exempt)
+		- 需要加载dispatch上, 单独方法无效
+		- 或加载类上, @method_decorator(csrf_exempt, name='dispatch')
+
+		from django.shortcuts import render, HttpResponse
+		from django.views.decorators.csrf import csrf_exempt, csrf_protect
+		from django.utils.decorators import method_decorator
+
+
+		class StudentsView(View):
+			@method_decorator(csrf_exempt)  # 不使用csrf验证
+			def dispatch(self, request, *args, **kwargs):
+				ret = super(StudentsView, self).dispatch(request, *args, **kwargs)
+				reutrn ret
+
+			def get(self, request, *args, **kwargs):
+				return HttpResponse('GET')
+
+			def post(self, request, *args, **kwargs):
+				return HttpResponse('POST')
+
+			def put(self, request, *args, **kwargs):
+				return HttpResponse('POST')
+
+			def delete(self, request, *args, **kwargs):
+				return HttpResponse('POST')
+
+	- 总结
+		- 本质: 基于反射来实现
+		- 流程: 路由, view, dispatch(反射)
+		- 取消csrf认证, 需要将装饰器加到dispatch方法上, 并且使用method_decorator装饰
+
+		扩展:
+			- csrf
+				- 基于中间件的process_view方法
+				- 装饰器给单独函数进行设置(认证或免除认证)
+
+
+4.restful规范(建议)
+	1. 域名
+	2. 版本
+	3. 路径
+	4. 方法
+	5. 过滤
+	6. 状态码
+	7. 错误类型
+	8. 返回结果
+	9. Hypermedia API, 即返回结果中提供连接
+	
+
+面向对象
+	继承: 继承一个多个父类的方法和属性
+		广度优先(新式类)
+		深度优先(经典类)
+
+	封装: 将一类的方法封装到一个类中, 或者在构造方法中封装属性
+	多态: 每个对象所调用的方法, 其返回值都不一定相同
+
+
+Django请求的生命周期
+	请求进来到wsgi, 再到中间件, 路由, 再到视图
+
+
+Django请求的声明周期(包含了rest framework框架)
+	请求进来到wsgi, 再到中间件, 路由, 再到视图(CBV)
+	dispatch
+
+
+5.django rest framework框架
+	pip3 install djangorestframework
+
+	a. 认证
+		- 仅使用
+			USER_INFO = {
+				'1': {
+					'name': '张亚瀚',
+					'age': 18,
+					'gender': '男',
+				},
+				'2': {
+					'name': '王花花',
+					'age': 18,
+					'gender': '女',
+				},
+				'3': {
+					'name': '李狗蛋',
+					'age': 18,
+					'gender': '男',
+				},}
+
+
+			from rest_framework.views import APIView
+			from rest_framework.authentication import BasicAuthentication
+			from rest_framework import exceptions
+
+			class MyAuthentication(object):
+				def authenticate(self, request):
+					#获取用户名和密码
+					token = request._request.GET.get('token')
+					if not token:
+						raise exceptions.AuthenticationFailed('用户未登录')
+					return ('zyh', None)  # 返回的对象存放在request.user中
+
+				def authenticate_header(self, val):
+					pass
+
+
+			class UserView(APIView):
+				
+				authentication_classes = [MyAuthentication,]
+
+				def get(self, request, *args, **kwargs):
+					print(request)
+					print(request.user)
+					return HttpResponse(json.dumps({'code': 200, 'data': USER_INFO}, ensure_ascii=False))
+
+				def post(self, request,  *args, **kwargs):
+					pass
+
+				def put(self, request,  *args, **kwargs):
+					pass
+
+				def delete(self, request,  *args, **kwargs):
+					pass	
+		
+
+		- 源码流程
+			dispatch入口
+
+
+
+
+
+################################################
+
+
+
+
+
+
+
+
+
+
+
+- 认证
+	a. 问题1: 有些api需要用户登录之后才能访问, 有些无需登录
+	b. 基本使用认证组件
+		解决:
+			a. 创建用户表和Token表进行一对一关联
+			b. 用户登录(返回token并存进数据库)
+	c. 认证流程原理
+		见图: authentication/webwxgetmsgimg.jpeg
+
+	d. 再看一遍源码
+		1. 局部视图使用和全局使用
+		在settings中配置(全局使用)
+			REST_FRAMEWORK = {  # 配置认证的类
+			    "DEAFULT_AUTHENTICATION_CLASSES": ["app01.utils.auth.MyAuthentication",]
+			}
+		当某个视图不使用时
+			在单独的类中添加静态字段
+				authentication_classes = []
+
+
+
+
+- 权限
+
+- 节流(访问频率)
+
+- 版本
+
+
+
+
