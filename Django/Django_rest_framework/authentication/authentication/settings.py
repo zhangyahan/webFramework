@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'api',
 ]
 
@@ -119,3 +120,23 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+
+
+
+REST_FRAMEWORK = {  # 配置全局认证的类
+    "DEFAULT_AUTHENTICATION_CLASSES": ["api.utils.auth.MyAuthentication",],  # 认证
+    # "UNAUTHENTICATED_USER": lambda: "匿名用户", request.user的值
+    "UNAUTHENTICATED_USER": None,  # request.user
+    "UNAUTHENTICATED_TOKEN": None,  # request.auth
+
+    "DEFAULT_PERMISSION_CLASSES": ["api.utils.permission.SVIPPermission", ],  # 权限
+    
+    "DEFAULT_THROTTLE_CLASSES": ["api.utils.throttle.UserThrottle", ],  # 节流
+    "DEFAULT_THROTTLE_RATES": {
+        "zyh": "3/m",
+        "zyhuser": "10/m",
+    },
+}
+

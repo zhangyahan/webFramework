@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from rest_framework.views import APIView  # rest framework类
 from rest_framework import exceptions  # 错误类型
 from api import models
+from .utils import permission, throttle, auth
 # Create your views here.
 
 
@@ -24,8 +25,14 @@ class AuthView(APIView):
 	"""
 
 	authentication_classes = []
+	permission_classes = []
+	throttle_classes = [throttle.VisitThrottle, ]
 
 	def post(self, request, *args, **kwargs):
+
+		# 1. 去request中获取IP
+		# 2. 访问记录...
+
 		self.dispatch
 		ret = {"code": 1000, "message": None}
 
@@ -54,7 +61,6 @@ class AuthView(APIView):
 		return JsonResponse(ret)
 
 
-
 ORDER_DICT = {
 	1:{
 		"name": "媳妇",
@@ -67,43 +73,41 @@ ORDER_DICT = {
 		"age": 1,
 		"gender": "雄",
 		"content": "xxx",
-	}
-}
+	}}
 
 
 class OrderView(APIView):
+
+	"""
+	订单相关业务(只有SVIP只有权限)
+	"""
+
 	# # 叫校验的类放入到authentication_classes属性的列表中
-	# authentication_classes = [MyAuthentication, ]
+	# authentication_classes = [MyAuthentication, ]  # 认证
+	# permission_classes = [permission.SVIPPermission,]  # 权限
 
 	def get(self, request, *args, **kwargs):
+
 		ret = {"code": 1000, "message": None, "data": None}
 
 		ret['data'] = ORDER_DICT
+		# print(request._request.META)
 		print(request.user)  # s_token.user_id
 		print(request.auth)  # s_token
 
-		# try:
-		# 	c_token = request._request.GET.get('token', '')
-
-		# 	if c_token:
-		# 		s_token = models.UserToken.objects.filter(token=c_token)
-		# 		if c_token == s_token:
-		# 			ret['data'] = ORDER_DICT
-		# 		else:
-		# 			ret['message'] = "token vlaue is not find"
-		# 	else:
-		# 		ret['message'] = "get url not token"
-
-		# except Exception as e:
-		# 	ret['code'] = 1002
-		# 	ret['message'] = '请求异常'
 
 		return JsonResponse(ret)
 
 
 class UserInfo(APIView):
 
+	"""
+	用户信息(所有用户都能看)
+	"""
+
 	# authentication_classes = [MyAuthentication, ]
+
+	permission_classes = [permission.OrdinaryPermission, ]  # 权限
 
 	def get(self, request, *args, **kwargs):
 		return HttpResponse('用户信息')

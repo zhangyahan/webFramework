@@ -320,29 +320,193 @@ Django请求的声明周期(包含了rest framework框架)
 
 - 认证
 	a. 问题1: 有些api需要用户登录之后才能访问, 有些无需登录
+
 	b. 基本使用认证组件
 		解决:
 			a. 创建用户表和Token表进行一对一关联
 			b. 用户登录(返回token并存进数据库)
+	
 	c. 认证流程原理
 		见图: authentication/webwxgetmsgimg.jpeg
 
 	d. 再看一遍源码
 		1. 局部视图使用和全局使用
-		在settings中配置(全局使用)
-			REST_FRAMEWORK = {  # 配置认证的类
-			    "DEAFULT_AUTHENTICATION_CLASSES": ["app01.utils.auth.MyAuthentication",]
-			}
+			在settings中配置(全局使用)
+				REST_FRAMEWORK = {  # 配置全局认证的类
+				    "DEFAULT_AUTHENTICATION_CLASSES": ["api.utils.auth.MyAuthentication",],
+				    # "UNAUTHENTICATED_USER": lambda: "匿名用户", request.user的值
+				    "UNAUTHENTICATED_USER": None,  # request.user
+				    "UNAUTHENTICATED_TOKEN": None,  # request.auth
+				}
+
 		当某个视图不使用时
 			在单独的类中添加静态字段
 				authentication_classes = []
 
+	e. 内置认证类
+		1. 认证类, 必须继承from rest_framework.authentication import BaseAuthentication
+		2. 其他认证, BasicAuthentication
+
+	梳理:
+		1. 使用
+			- 创建类, 继承from rest_framework.authentication import BaseAuthentication
+
+			- 类中必须有两个方法def authenticate(self, request):, def authenticate_header(self, request):
+
+			- 返回值: 
+				- None: 下一个认证来执行
+				- raise: from rest_framework import exceptions 
+						 raise exceptions.AuthenticationFailed('token vlaue is not find')
+				- (元素1, 元素2): 元素1赋值给request.user, request.auth
+
+			- 局部使用: 在当前的视图中写一个静态字段 authentication_classes = [MyAuthentication, ]
+
+			- 全局使用: 
+				REST_FRAMEWORK = {  # 配置全局认证的类
+				    "DEFAULT_AUTHENTICATION_CLASSES": ["api.utils.auth.MyAuthentication",],
+				    # "UNAUTHENTICATED_USER": lambda: "匿名用户", request.user的值
+				    "UNAUTHENTICATED_USER": None,  # request.user
+				    "UNAUTHENTICATED_TOKEN": None,  # request.auth
+				}
+
+
+		2. 源码流程
+			- dispatch
+				- 封装request
+					- 获取定义的认证的类(全局/局部), 通过列表生成式创建对象
+				- initial
+					- perform_authentication
+						request.user(内部循环...)
 
 
 
 - 权限
+	a. 问题: 不同的视图有不同的权限
 
-- 节流(访问频率)
+	b. 权限的基本使用
+		- 写一个权限类, 类中必须有has_permission(self, request, view)方法, 返回bool值
+		- 在使用权限的视图中添加静态字段  permission_classes = [权限类,]  # 权限
+
+	c. 源码流程(入口dispatch)
+
+	d. 总结
+		1. 使用
+			- 类, 必须继承BasePermission, 必须有has_permission
+				from rest_framework.permissions import BasePermission
+
+				class SVIPPermission(BasePermission):
+
+					message = "必须是SVIP才能访问"
+					def has_permission(self, request, view):
+						if request.user.user_type != 3:
+							return False
+						return True
+
+			- 返回值, Bool值
+
+			- 局部(类中加字段)
+				permission_classes = [permission.OrdinaryPermission, ]
+
+			- 全局
+				REST_FRAMEWORK = {
+				    "DEFAULT_PERMISSION_CLASSES": ["api.utils.permission.SVIPPermission", ],  # 权限
+				}
+
+
+		2. 源码流程
+
+
+
+- 节流(访问频率控制)
+	a. 问题: 控制访问频率
+
+	b. 使用
+		- 创建一个类
+			class VisitThrottle(object):
+
+				def __init__(self):
+					self.history = None
+
+				def allow_request(self, request, view):
+					# 获取用户ip
+					# remote_addr = request._request.META.get("REMOTE_ADDR")
+					remote_addr = request.META.get("REMOTE_ADDR")
+					stime = time.time()
+					if remote_addr not in VISIT_RECORD:
+						VISIT_RECORD[remote_addr] = [stime,]
+						return True
+
+					history = VISIT_RECORD.get(remote_addr)
+					self.history = history  # 将当前用户的访问列表赋值给self.history
+
+					while history and history[-1] < stime - 60:
+						# 如果history中有值和history的最早一次访问记录比当前时间-60秒小, 将history的-1pop
+						history.pop()
+
+					if len(history) < 3:
+						history.insert(0, stime)
+						return True
+					# return True  # 表示可以访问
+					# return False  # 表示访问频率太高,被限制
+
+				def wait(self):
+					"""
+					还需要等多少秒可以访问
+					"""
+					s_time = time.time() 
+					return 60 - (s_time-self.history[-1])	
+
+		- 在使用的视图中添加静态字段
+			throttle_classes = [VisitThrottle, ]
+
+	c. 源码流程
+		...
+
+	d. 内置的控制频率类
+		class VisitThrottle(SimpleRateThrottle):
+			scope = "zyh"  # key
+
+			def get_cache_key(self, request, view):
+				return self.get_ident(request)
+
+
+		class UserThrottle(SimpleRateThrottle):
+			scope = "zyhuser"  # key
+
+			def get_cache_key(self, request, view):
+				return request.user.username
+
+		应用:
+			REST_FRAMEWORK = {
+			    "DEFAULT_THROTTLE_CLASSES": ["api.utils.throttle.UserThrottle", ],  # 节流
+			    "DEFAULT_THROTTLE_RATES": {
+			        "zyh": "3/m",
+			        "zyhuser": "10/m",
+			    },
+			}
+
+
+	e. 梳理
+		1. 基本使用
+			创建一个类, 继承from rest_framework.throttling import BaseThrottle
+			类中必须有allow_request方法和wait方法, 在使用的视图中添加throttle_classes=[]静态字段
+
+		2. 全局使用
+			创建一个类, 继承from rest_framework.throttling import SimpleRateThrottle
+			类中必须要有一个scope属性, 用来作为查找配置的key进行设置
+			还需要一个get_cache_key方法, 并需要返回一个记录该用户的标识作为key
+			配置:
+				REST_FRAMEWORK = {
+				    
+				    "DEFAULT_THROTTLE_CLASSES": ["api.utils.throttle.UserThrottle", ],  # 节流
+				    "DEFAULT_THROTTLE_RATES": {
+				        "zyh": "3/m",  # 配置的key的值
+				        "zyhuser": "10/m",   # 配置的key的值
+				    },
+				}
+
+
+
 
 - 版本
 

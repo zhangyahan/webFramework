@@ -1,10 +1,9 @@
-from django.shortcuts import render, HttpResponse
-from django.http import JsonResponse
-from rest_framework.views import APIView  # rest framework类
 from rest_framework import exceptions  # 错误类型
 from api import models
+from rest_framework.authentication import BaseAuthentication
 
-class MyAuthentication(object):
+
+class MyAuthentication(BaseAuthentication):
 	"""
 	认证用户是否登录
 	类中必须有authenticate方法和authenticate_header方法
@@ -19,7 +18,7 @@ class MyAuthentication(object):
 		if not s_token:
 			raise exceptions.AuthenticationFailed('token vlaue is not find')
 
-		return (s_token.user_id, s_token)  # 封装在request.user, request.auth中
+		return (s_token.user, s_token)  # 封装在request.user, request.auth中
 
 	def authenticate_header(self, request):
-		pass
+		return 'Basic realm="api"'
