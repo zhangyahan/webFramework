@@ -309,12 +309,32 @@ Django请求的声明周期(包含了rest framework框架)
 ################################################
 
 
+鸭子模型
+
+	class WX:
+		def send():
+			pass
+
+	class Email:
+		def send():
+			pass
+
+	class Msg():
+		def send():
+			pass
+
+	def func(arg):
+		arg.send()
 
 
+wsgi
+	web server 服务借口, wsgi, 协议
 
+	wsgiref 实现了wsgi协议的一个模块, 模块本质, 就是一个socket服务端
+	wsgizeng 实现了wsgi协议的一个模块, 模块本质, 就是一个socket服务端(flask)
+	tornado 自己的
 
-
-
+	uwsgi部署时用的, 实现了wsgi协议的一个模块, 模块本质, 就是一个socket服务端
 
 
 
@@ -506,10 +526,149 @@ Django请求的声明周期(包含了rest framework框架)
 				}
 
 
+rest framework 认证流程(封装Request)
+rest framework 权限流程
+rest framework 节流流程
 
 
 - 版本
+	a. URL中通过GET传参
+		- 自定义(URL:http://127.0.0.1:8000/api/user/?version=v1)
+			from django.shortcuts import render, HttpResponse
+			from rest_framework.views import APIView
+			from rest_framework.versioning import BaseVersioning
 
+			# Create your views here.
+
+			class ParamVersion(object):
+
+				def determine_version(self, request, *args, **kwargs):
+					return request.query_params.get('version')
+
+
+			class UserView(APIView):
+
+				versioning_class = ParamVersion
+
+				def get(self, request, *args, **kwargs):
+					# version = request._request.GET.get('version')
+					# version = request.query_params.get('version')
+					version = request.version
+					print(version)
+
+					return HttpResponse('xxx')
+
+		- 内置(URL:http://127.0.0.1:8000/api/user/?version=v1)
+			from django.shortcuts import render, HttpResponse
+			from rest_framework.views import APIView
+			from rest_framework.versioning import BaseVersioning, QueryParameterVersioning
+
+			# Create your views here.
+
+			class UserView(APIView):
+
+				versioning_class = QueryParameterVersioning  # 使用内置的获取版本的类, 需要在配置中设置
+
+				def get(self, request, *args, **kwargs):
+					version = request.version
+					print(version)
+
+					return HttpResponse('xxx')
+
+			- 配置
+				REST_FRAMEWORK = {
+				    "DEFAULT_VERSION": "v1",  # 默认的版本
+				    "ALLOWED_VERSIONS": ["v1", "v2"],  # 允许的版本
+				    "VERSION_PARAM": "version",  # 版本参数的键
+				}
+
+	b. 使用URL路径获取版本(推荐)
+		路由:
+			urlpatterns = [
+				url(r"^(?P<version>[v1|v2]+)/user/$", views.UserView.as_view()),  # 使用URL获取版本号
+			]
+
+		配置:
+			REST_FRAMEWORK = {
+			    "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.URLPathVersioning",
+			    "DEFAULT_VERSION": "v1",  # 默认的版本
+			    "ALLOWED_VERSIONS": ["v1", "v2"],  # 允许的版本
+			    "VERSION_PARAM": "version",  # 版本参数的键
+			}
+
+		获取:
+			class UserView(APIView):
+
+				def get(self, request, *args, **kwargs):
+					version = request.version  # 使用URL获取版本号, 仍然实在request.version中
+					print(version)
+
+					return HttpResponse('xxx')
+
+	c. 总结
+		- 使用:
+			配置文件:
+				REST_FRAMEWORK = {
+				    "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.URLPathVersioning",
+				    "DEFAULT_VERSION": "v1",  # 默认的版本
+				    "ALLOWED_VERSIONS": ["v1", "v2"],  # 允许的版本
+				    "VERSION_PARAM": "version",  # 版本参数的键
+				}
+
+			路由系统:
+				urlpatterns = [
+				    # url(r'^admin/', admin.site.urls),
+				    url(r'^api/', include("api.urls")),
+				]
+
+				urlpatterns = [
+					url(r"^(?P<version>[v1|v2]+)/user/$", views.UserView.as_view(), name="user"),  # 使用URL获取版本号
+
+				]
+
+			视图文件:
+				from django.shortcuts import render, HttpResponse
+				from rest_framework.views import APIView
+				from rest_framework.versioning import BaseVersioning, QueryParameterVersioning, URLPathVersioning
+				from django.urls import reverse
+
+				# Create your views here.
+
+				class UserView(APIView):
+
+					# versioning_class = QueryParameterVersioning  # 使用内置的获取版本的类, 需要在配置中设置
+					# versioning_class = URLPathVersioning  # 使用URL路径方式获取版本类, 需在路由中配置
+
+					def get(self, request, *args, **kwargs):
+						version = request.version  # 使用URL获取版本号, 仍然实在request.version中
+						print(version)
+						print(request.versioning_scheme)  # 使用的版本类的对象, 对象中有一个reverse方法用于反向生成对象(rest_framework)
+						print(request.versioning_scheme.reverse(viewname="user", request=request))  # 参数为别名和版本号
+
+						print(reverse(viewname="user", kwargs=({"version":version})))  # 基于Django内置
+
+						return HttpResponse('xxx')
+
+
+- 解析器
+	前戏, django的request.body和request.POST
+
+
+
+- 序列化
+	- 请求数据进行校验
+	- QuerySet进行序列化
+
+- 分页
+
+
+- 路由
+
+
+- 视图
+
+
+- 渲染器
 
 
 
